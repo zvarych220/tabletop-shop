@@ -1,12 +1,11 @@
-export default function BoardGameCard({ game }) {
-  const statusText = game.inStock ? 'В наявності' : 'Очікується поставка'
-  const statusClass = game.inStock ? 'status-available' : 'status-out'
+import AvailabilityBadge from './AvailabilityBadge.jsx'
 
+export default function BoardGameCard({ game }) {
   return (
     <article className="game-card">
       <div className="card-header">
         <span className="game-category">{game.category}</span>
-        <span className={`game-status ${statusClass}`}>{statusText}</span>
+        <AvailabilityBadge available={game.inStock} />
       </div>
 
       <h3 className="game-title">{game.title}</h3>

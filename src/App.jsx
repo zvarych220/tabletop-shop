@@ -1,24 +1,22 @@
+import AppLayout from './components/layout/AppLayout.jsx'
 import HomePage from './pages/HomePage.jsx'
+import OrderPage from './pages/OrderPage.jsx'
+import { boardGames } from './data/boardGames.js'
+
+const navLinks = [
+  { href: '#about', label: 'Про магазин' },
+  { href: '#catalog', label: 'Каталог' },
+  { href: '#order', label: 'Замовлення' },
+]
 
 export default function App() {
+  // Фіксований приклад для демонстрації макета другої сторінки (Л 1.2)
+  const exampleGame = boardGames.find((g) => g.id === 'game-001')
+
   return (
-    <div className="app-layout">
-      <header className="site-header">
-        <div className="logo-box">
-          <span className="logo-icon"></span>
-          <span className="logo-text">Dice & Deck</span>
-        </div>
-        <nav className="site-nav">
-          <a href="#about">Про магазин</a>
-          <a href="#catalog">Каталог</a>
-        </nav>
-      </header>
-
+    <AppLayout title="Dice & Deck" links={navLinks}>
       <HomePage />
-
-      <footer className="site-footer">
-        <p>© 2026 Dice & Deck. Навчальний проєкт на ReactJS (Лабораторна 1.1).</p>
-      </footer>
-    </div>
+      <OrderPage selectedGame={exampleGame} />
+    </AppLayout>
   )
 }
