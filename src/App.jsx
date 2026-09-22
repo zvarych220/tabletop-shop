@@ -1,6 +1,7 @@
 import AppLayout from './components/layout/AppLayout.jsx'
-import HomePage from './pages/HomePage.jsx'
-import OrderPage from './pages/OrderPage.jsx'
+import BoardGameSelectionProvider from './providers/BoardGameSelectionProvider.jsx'
+import CatalogContainer from './pages/CatalogContainer.jsx'
+import OrderContainer from './pages/OrderContainer.jsx'
 import { boardGames } from './data/boardGames.js'
 
 const navLinks = [
@@ -10,13 +11,12 @@ const navLinks = [
 ]
 
 export default function App() {
-  // Фіксований приклад для демонстрації макета другої сторінки (Л 1.2)
-  const exampleGame = boardGames.find((g) => g.id === 'game-001')
-
   return (
     <AppLayout title="Dice & Deck" links={navLinks}>
-      <HomePage />
-      <OrderPage selectedGame={exampleGame} />
+      <BoardGameSelectionProvider items={boardGames}>
+        <CatalogContainer items={boardGames} />
+        <OrderContainer />
+      </BoardGameSelectionProvider>
     </AppLayout>
   )
 }
