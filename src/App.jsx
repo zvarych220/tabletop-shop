@@ -1,22 +1,39 @@
+import { Route, Routes } from 'react-router'
 import AppLayout from './components/layout/AppLayout.jsx'
-import BoardGameSelectionProvider from './providers/BoardGameSelectionProvider.jsx'
+import OrdersLayout from "./components/layout/OrdersLayout.jsx";
+import HomePage from './pages/HomePage.jsx'
 import CatalogContainer from './pages/CatalogContainer.jsx'
-import OrderContainer from './pages/OrderContainer.jsx'
+import BoardGameDetailsPage from './pages/BoardGameDetailsPage.jsx'
+import OrdersPage from './pages/OrdersPage.jsx'
+import OrderCreatePage from './pages/OrderCreatePage.jsx'
+import OrderEditPage from './pages/OrderEditPage.jsx'
+import NotFoundPage from './pages/NotFoundPage.jsx'
 import { boardGames } from './data/boardGames.js'
-
-const navLinks = [
-  { href: '#about', label: 'Про магазин' },
-  { href: '#catalog', label: 'Каталог' },
-  { href: '#order', label: 'Замовлення' },
-]
+import { orders } from './data/orders.js'
 
 export default function App() {
   return (
-    <AppLayout title="Dice & Deck" links={navLinks}>
-      <BoardGameSelectionProvider items={boardGames}>
-        <CatalogContainer items={boardGames} />
-        <OrderContainer />
-      </BoardGameSelectionProvider>
-    </AppLayout>
+    <Routes>
+      <Route element={<AppLayout items={boardGames} />}>
+        {/* Головна сторінка */}
+        <Route index element={<HomePage />} />
+
+        {/* Каталог і деталі гри */}
+        <Route path="games">
+          <Route index element={<CatalogContainer items={boardGames} />} />
+          <Route path=":gameId" element={<BoardGameDetailsPage items={boardGames} />} />
+        </Route>
+
+        {/* Вкладені маршрути замовлень */}
+        <Route path="orders" element={<OrdersLayout />}>
+          <Route index element={<OrdersPage orders={orders} items={boardGames} />} />
+          <Route path="new" element={<OrderCreatePage items={boardGames} />} />
+          <Route path=":orderId/edit" element={<OrderEditPage orders={orders} items={boardGames} />} />
+        </Route>
+
+        {/* Невідомий маршрут (404) */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
   )
 }

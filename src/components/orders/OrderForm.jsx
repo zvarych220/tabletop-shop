@@ -22,8 +22,9 @@ export default function OrderForm({
       className="order-form-preview"
     >
       <p id={noticeId} className="preview-notice">
-        ℹ️ Чернетка існує лише в пам'яті до зміни гри, очищення або перезавантаження сторінки.
+        Чернетка існує лише в пам'яті до зміни гри, очищення або перезавантаження сторінки.
       </p>
+
 
       <FormField id={nameId} label="Обрана гра">
         <input

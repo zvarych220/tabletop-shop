@@ -1,27 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import PageHeading from '../components/ui/PageHeading.jsx'
 import Section from '../components/ui/Section.jsx'
-import EmptyState from '../components/ui/EmptyState.jsx'
 import AppButton from '../components/ui/AppButton.jsx'
 import AvailabilityBadge from '../components/games/AvailabilityBadge.jsx'
 import OrderForm from '../components/orders/OrderForm.jsx'
 import OrderSummary from '../components/orders/OrderSummary.jsx'
+import { TargetIcon } from '../components/ui/Icons.jsx'
 
-function createInitialDraft() {
-  return { comment: '', needsConsultation: false }
-}
+const defaultDraft = { comment: '', needsConsultation: false }
 
-export default function OrderPage({ selectedGame, onClearSelection }) {
-  const [draft, setDraft] = useState(createInitialDraft)
-
-  // Синхронізація назви вкладки браузера із зовнішнім середовищем
-  const pageTitle = selectedGame ? `Dice & Deck: ${selectedGame.title}` : 'Dice & Deck'
-  useEffect(() => {
-    const previousTitle = document.title
-    document.title = pageTitle
-    return () => {
-      document.title = previousTitle
-    }
-  }, [pageTitle])
+export default function OrderPage({
+  title,
+  game,
+  initialDraft = defaultDraft,
+  onCancel,
+  cancelLabel = 'Скасувати та повернутися',
+}) {
+  const [draft, setDraft] = useState(() => ({ ...initialDraft }))
 
   function handleCommentChange(comment) {
     setDraft((prev) => ({ ...prev, comment }))
@@ -31,45 +26,54 @@ export default function OrderPage({ selectedGame, onClearSelection }) {
     setDraft((prev) => ({ ...prev, needsConsultation }))
   }
 
-  function handleResetDraft() {
-    setDraft(createInitialDraft())
-  }
-
-  if (!selectedGame) {
-    return (
-      <Section id="order" title="Швидке замовлення / Бронювання">
-        <EmptyState title="Гру не обрано">
-          Будь ласка, перейдіть до каталогу вище та оберіть настільну гру, яку бажаєте замовити.
-        </EmptyState>
-      </Section>
-    )
+  function handleReset() {
+    setDraft({ ...defaultDraft })
   }
 
   return (
-    <Section id="order" title="Швидке замовлення / Бронювання">
-      <div className="order-page-layout">
-        <div className="selected-game-banner">
-          <p>
-            Ви обрали гру: <strong>«{selectedGame.title}»</strong> ({selectedGame.price} ₴) —{' '}
-            <AvailabilityBadge available={selectedGame.inStock} />
-          </p>
-          <AppButton variant="secondary" onClick={onClearSelection}>
-            Скасувати вибір гри
-          </AppButton>
-        </div>
+    <div className="order-page-wrapper">
+      <Section id="order-form-section" title={title}>
+        <PageHeading title={title} />
+        <div className="order-page-layout">
+          <div className="selected-game-banner">
+            <div className="banner-game-info">
+              <span className="banner-game-icon-wrap">
+                <TargetIcon size={22} className="banner-icon-svg" />
+              </span>
+              <div className="banner-text-group">
+                <span className="banner-subtitle">Товар у заявці:</span>
+                <div className="banner-title-line">
+                  <strong className="banner-game-title">«{game.title}»</strong>
+                  <span className="banner-game-price">{game.price} ₴</span>
+                  <AvailabilityBadge available={game.inStock} />
+                </div>
+              </div>
+            </div>
+            {onCancel && (
+              <AppButton variant="secondary" onClick={onCancel}>
+                {cancelLabel}
+              </AppButton>
+            )}
+          </div>
 
-        <div className="order-split-grid">
-          <OrderForm
-            idPrefix="order-main"
-            gameTitle={selectedGame.title}
-            draft={draft}
-            onCommentChange={handleCommentChange}
-            onNeedsConsultationChange={handleConsultationChange}
-            onReset={handleResetDraft}
-          />
-          <OrderSummary gameTitle={selectedGame.title} draft={draft} />
+
+          <div className="order-split-grid">
+            <div className="order-form-column">
+              <OrderForm
+                idPrefix="order-edit"
+                gameTitle={game.title}
+                draft={draft}
+                onCommentChange={handleCommentChange}
+                onNeedsConsultationChange={handleConsultationChange}
+                onReset={handleReset}
+              />
+            </div>
+            <div className="order-summary-column">
+              <OrderSummary gameTitle={game.title} draft={draft} />
+            </div>
+          </div>
         </div>
-      </div>
-    </Section>
+      </Section>
+    </div>
   )
 }
