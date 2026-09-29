@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router'
 import SiteHeader from './SiteHeader.jsx'
 import BoardGameSelectionProvider from '../../providers/BoardGameSelectionProvider.jsx'
+import OrdersProvider from '../../providers/OrdersProvider.jsx'
 import { DiceIcon } from '../ui/Icons.jsx'
 
 const navigationLinks = [
@@ -18,7 +19,9 @@ export default function AppLayout({ items }) {
       <main id="main-content" tabIndex={-1} className="main-container">
         <div className="main-container-inner">
           <BoardGameSelectionProvider items={items}>
-            <Outlet />
+            <OrdersProvider items={items}>
+              <Outlet />
+            </OrdersProvider>
           </BoardGameSelectionProvider>
         </div>
       </main>
@@ -33,7 +36,7 @@ export default function AppLayout({ items }) {
             <p className="footer-tagline">Світ настільних стратегій, пригод та затишних вечорів з друзями.</p>
           </div>
           <div className="footer-meta">
-            <p className="footer-note">© 2026 Dice & Deck. Навчальний проєкт (Лабораторна 2.2: Маршрутизація).</p>
+            <p className="footer-note">© 2026 Dice & Deck. Навчальний проєкт (Лабораторна 3.1: CRUD та валідація).</p>
             <p className="footer-tech">Побудовано на React 19 + React Router v8</p>
           </div>
         </div>

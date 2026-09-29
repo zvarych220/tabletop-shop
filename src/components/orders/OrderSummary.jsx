@@ -1,7 +1,7 @@
-import { ReceiptIcon, MessageSquareIcon, ZapIcon } from '../ui/Icons.jsx'
+import { ReceiptIcon, MessageSquareIcon, ZapIcon, ClockIcon } from '../ui/Icons.jsx'
 
 export default function OrderSummary({ gameTitle, draft }) {
-  const cleanComment = draft.comment.trim()
+  const cleanComment = draft.comment ? draft.comment.trim() : ''
 
   return (
     <div className="order-summary-box">
@@ -23,7 +23,20 @@ export default function OrderSummary({ gameTitle, draft }) {
         <div className="summary-row">
           <dt>Коментар:</dt>
           <dd className={cleanComment ? 'summary-comment' : 'summary-empty'}>
-            {cleanComment || 'Не вказано'}
+            {cleanComment || 'Ще не вказано'}
+          </dd>
+        </div>
+        <div className="summary-row">
+          <dt>Тривалість:</dt>
+          <dd>
+            {draft.durationHours ? (
+              <span className="summary-duration-tag">
+                <ClockIcon size={13} className="spec-icon-svg" />
+                <span>{draft.durationHours} год.</span>
+              </span>
+            ) : (
+              'Не вказано'
+            )}
           </dd>
         </div>
         <div className="summary-row">
@@ -45,7 +58,7 @@ export default function OrderSummary({ gameTitle, draft }) {
       <div className="summary-footer-notice">
         <small className="field-hint">
           <ZapIcon size={13} className="summary-notice-svg" />
-          <span>Підсумок автоматично оновлюється при введенні тексту.</span>
+          <span>Дані синхронізуються з формою наживо.</span>
         </small>
       </div>
     </div>

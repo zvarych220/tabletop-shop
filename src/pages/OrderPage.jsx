@@ -6,28 +6,83 @@ import AvailabilityBadge from '../components/games/AvailabilityBadge.jsx'
 import OrderForm from '../components/orders/OrderForm.jsx'
 import OrderSummary from '../components/orders/OrderSummary.jsx'
 import { TargetIcon } from '../components/ui/Icons.jsx'
+import { validateOrder } from '../domain/orderValidation.js'
 
-const defaultDraft = { comment: '', needsConsultation: false }
+const emptyDraft = { comment: '', durationHours: '1', needsConsultation: false }
 
 export default function OrderPage({
   title,
   game,
-  initialDraft = defaultDraft,
+  initialDraft = emptyDraft,
+  onSave,
   onCancel,
-  cancelLabel = 'Скасувати та повернутися',
+  submitLabel = 'Зберегти замовлення',
+  cancelLabel = 'Вийти без збереження',
 }) {
-  const [draft, setDraft] = useState(() => ({ ...initialDraft }))
-
-  function handleCommentChange(comment) {
-    setDraft((prev) => ({ ...prev, comment }))
+  const initialValues = {
+    comment: initialDraft.comment ?? '',
+    durationHours: String(initialDraft.durationHours ?? '1'),
+    needsConsultation: Boolean(initialDraft.needsConsultation),
   }
 
-  function handleConsultationChange(needsConsultation) {
-    setDraft((prev) => ({ ...prev, needsConsultation }))
+  const [draft, setDraft] = useState(() => ({ ...initialValues }))
+  const [touched, setTouched] = useState({})
+  const [attempted, setAttempted] = useState(false)
+  const [operationError, setOperationError] = useState('')
+
+  const validation = validateOrder({ ...draft, gameId: game.id }, [game])
+
+  const errors = Object.fromEntries(
+    Object.entries(validation.errors).filter(([field]) => attempted || touched[field]),
+  )
+
+  const isDirty =
+    draft.comment !== initialValues.comment ||
+    draft.durationHours !== initialValues.durationHours ||
+    draft.needsConsultation !== initialValues.needsConsultation
+
+  function handleChange(field, value) {
+    setDraft((prev) => ({ ...prev, [field]: value }))
+    setOperationError('')
+  }
+
+  function handleBlur(field) {
+    setTouched((prev) => ({ ...prev, [field]: true }))
+  }
+
+  function handleSubmit(event) {
+    event.preventDefault()
+    setAttempted(true)
+    setOperationError('')
+
+    if (!validation.ok) {
+      const firstField = ['comment', 'durationHours', 'needsConsultation'].find(
+        (f) => validation.errors[f],
+      )
+      if (firstField) {
+        event.currentTarget.elements.namedItem(firstField)?.focus()
+      }
+      return
+    }
+
+    const result = onSave(validation.value)
+    if (!result.ok) {
+      setOperationError(result.message || Object.values(result.errors || {}).join(' '))
+    }
   }
 
   function handleReset() {
-    setDraft({ ...defaultDraft })
+    if (!isDirty) return
+    if (!window.confirm('Відкинути зміни та відновити початкові значення?')) return
+    setDraft({ ...initialValues })
+    setTouched({})
+    setAttempted(false)
+    setOperationError('')
+  }
+
+  function handleCancel() {
+    if (isDirty && !window.confirm('Вийти та відкинути незбережені зміни?')) return
+    onCancel()
   }
 
   return (
@@ -50,22 +105,25 @@ export default function OrderPage({
               </div>
             </div>
             {onCancel && (
-              <AppButton variant="secondary" onClick={onCancel}>
+              <AppButton variant="secondary" onClick={handleCancel}>
                 {cancelLabel}
               </AppButton>
             )}
           </div>
 
-
           <div className="order-split-grid">
             <div className="order-form-column">
               <OrderForm
-                idPrefix="order-edit"
+                idPrefix="order-form"
                 gameTitle={game.title}
                 draft={draft}
-                onCommentChange={handleCommentChange}
-                onNeedsConsultationChange={handleConsultationChange}
+                errors={errors}
+                operationError={operationError}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                onSubmit={handleSubmit}
                 onReset={handleReset}
+                submitLabel={submitLabel}
               />
             </div>
             <div className="order-summary-column">

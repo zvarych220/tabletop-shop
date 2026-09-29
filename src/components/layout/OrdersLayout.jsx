@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router'
 import { ClipboardListIcon, FilePlusIcon } from '../ui/Icons.jsx'
+import OrderNotice from '../orders/OrderNotice.jsx'
 
 export default function OrdersLayout() {
   return (
@@ -23,6 +24,11 @@ export default function OrdersLayout() {
           </NavLink>
         </nav>
       </div>
+
+      <OrderNotice />
+      <p className="field-hint memory-hint">
+        <em>Дані зберігаються в пам'яті до перезавантаження вкладки.</em>
+      </p>
 
       <div className="orders-content">
         <Outlet />
