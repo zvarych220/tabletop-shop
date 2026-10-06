@@ -99,7 +99,10 @@ export default function BoardGameDetailsPage({ items }) {
           <h1 className="product-headline">{game.title}</h1>
 
           <div className="product-rating-row">
-            <span className="product-stars">{'★'.repeat(game.rating || 5)}</span>
+            <span className="product-stars">
+              {'★'.repeat(game.rating || 5)}
+              {'☆'.repeat(Math.max(0, 5 - (game.rating || 5)))}
+            </span>
             <span className="product-reviews-count">({game.ratingCount || 142} відгуки покупців)</span>
           </div>
 
@@ -313,7 +316,10 @@ export default function BoardGameDetailsPage({ items }) {
               <h3 className="related-title">
                 <Link to={`/games/${relGame.id}`}>{relGame.title}</Link>
               </h3>
-              <div className="related-stars">{'★'.repeat(relGame.rating || 5)}</div>
+              <div className="related-stars">
+                {'★'.repeat(relGame.rating || 5)}
+                {'☆'.repeat(Math.max(0, 5 - (relGame.rating || 5)))}
+              </div>
               <span className="related-price">{relGame.price} ₴</span>
               <button
                 type="button"

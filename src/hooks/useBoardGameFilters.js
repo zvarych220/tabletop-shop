@@ -19,7 +19,7 @@ export default function useBoardGameFilters(items) {
       const matchesQuery = item.title.toLocaleLowerCase('uk').includes(normalizedQuery)
       const matchesCategory = category === 'all' || item.category === category
       const matchesPrice = item.price >= minPrice && item.price <= maxPrice
-      const matchesRating = minRating === 0 || (item.rating || 5) >= minRating
+      const matchesRating = minRating === 0 || (item.rating ?? 5) >= minRating
       const matchesAvailability = !availableOnly || item.inStock
       return matchesQuery && matchesCategory && matchesPrice && matchesRating && matchesAvailability
     })
@@ -28,8 +28,18 @@ export default function useBoardGameFilters(items) {
       filtered = [...filtered].sort((a, b) => a.price - b.price)
     } else if (sortBy === 'price-desc') {
       filtered = [...filtered].sort((a, b) => b.price - a.price)
-    } else if (sortBy === 'rating') {
-      filtered = [...filtered].sort((a, b) => (b.rating || 5) - (a.rating || 5))
+    } else if (sortBy === 'rating' || sortBy === 'rating-desc') {
+      filtered = [...filtered].sort((a, b) => {
+        const diff = (b.rating ?? 5) - (a.rating ?? 5)
+        if (diff !== 0) return diff
+        return (b.ratingCount ?? 0) - (a.ratingCount ?? 0)
+      })
+    } else if (sortBy === 'rating-asc') {
+      filtered = [...filtered].sort((a, b) => {
+        const diff = (a.rating ?? 5) - (b.rating ?? 5)
+        if (diff !== 0) return diff
+        return (a.ratingCount ?? 0) - (b.ratingCount ?? 0)
+      })
     } else if (sortBy === 'title') {
       filtered = [...filtered].sort((a, b) => a.title.localeCompare(b.title, 'uk'))
     }

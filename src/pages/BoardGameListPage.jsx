@@ -34,9 +34,9 @@ export default function BoardGameListPage({ items }) {
         </p>
       </div>
 
-      {/* Catalog Top Toolbar (Screenshot 1) */}
+      {/* Catalog Top Toolbar */}
       <div className="lab-catalog-toolbar">
-        <div className="toolbar-left">
+        <div className="toolbar-controls-row">
           <button
             type="button"
             className="lab-filter-toggle-btn"
@@ -46,27 +46,31 @@ export default function BoardGameListPage({ items }) {
             <span className="filter-btn-icon">☰</span>
             <span className="filter-btn-text">ФІЛЬТРИ</span>
           </button>
+
+          <div className="toolbar-sort-wrap">
+            <label htmlFor="catalog-sort-select" className="visually-hidden">
+              Сортування
+            </label>
+            <select
+              id="catalog-sort-select"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="lab-sort-select"
+            >
+              <option value="default">За замовчуванням</option>
+              <option value="rating">Рейтинг: від найвищого</option>
+              <option value="rating-asc">Рейтинг: від найнижчого</option>
+              <option value="price-asc">Ціна: від дешевих до дорогих</option>
+              <option value="price-desc">Ціна: від дорогих до дешевих</option>
+              <option value="title">За назвою (А–Я)</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="toolbar-meta-row">
           <span className="lab-toolbar-results-count">
             Показано <strong>{visibleItems.length}</strong> з {items.length} товарів
           </span>
-        </div>
-
-        <div className="toolbar-right">
-          <label htmlFor="catalog-sort-select" className="visually-hidden">
-            Сортування
-          </label>
-          <select
-            id="catalog-sort-select"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="lab-sort-select"
-          >
-            <option value="default">За замовчуванням</option>
-            <option value="price-asc">Ціна: від дешевих до дорогих</option>
-            <option value="price-desc">Ціна: від дорогих до дешевих</option>
-            <option value="rating">За рейтингом покупців</option>
-            <option value="title">За назвою (А–Я)</option>
-          </select>
         </div>
       </div>
 

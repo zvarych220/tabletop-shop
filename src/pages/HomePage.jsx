@@ -44,8 +44,9 @@ function HomeProductCard({ game }) {
           <Link to={`/games/${game.id}`}>{game.title}</Link>
         </h3>
 
-        <div className="lab-product-stars" aria-label="Рейтинг 5 з 5">
+        <div className="lab-product-stars" aria-label={`Рейтинг ${game.rating || 5} з 5`}>
           {'★'.repeat(game.rating || 5)}
+          {'☆'.repeat(Math.max(0, 5 - (game.rating || 5)))}
         </div>
 
         <div className="lab-product-price-row">
