@@ -5,23 +5,43 @@ import AppButton from '../components/ui/AppButton.jsx'
 import AvailabilityBadge from '../components/games/AvailabilityBadge.jsx'
 import OrderForm from '../components/orders/OrderForm.jsx'
 import OrderSummary from '../components/orders/OrderSummary.jsx'
+import { TargetIcon } from '../components/ui/Icons.jsx'
 import { validateOrder } from '../domain/orderValidation.js'
 
-const emptyDraft = { comment: '', durationHours: '1', needsConsultation: false }
+const emptyDraft = {
+  fullName: '',
+  phone: '',
+  deliveryService: 'nova_poshta',
+  city: '',
+  branch: '',
+  paymentMethod: 'cash_on_delivery',
+  comment: '',
+}
 
 export default function OrderPage({
   title,
   game,
+  orderedItems = [],
   initialDraft = emptyDraft,
   onSave,
   onCancel,
-  submitLabel = 'Зберегти замовлення',
-  cancelLabel = 'Вийти без збереження',
+  submitLabel = 'Підтвердити покупку',
+  cancelLabel = 'Повернутися до магазину',
 }) {
+  const effectiveItems = orderedItems.length > 0
+    ? orderedItems
+    : game
+    ? [{ gameId: game.id, title: game.title, price: game.price, quantity: 1 }]
+    : []
+
   const initialValues = {
+    fullName: initialDraft.fullName ?? '',
+    phone: initialDraft.phone ?? '',
+    deliveryService: initialDraft.deliveryService ?? 'nova_poshta',
+    city: initialDraft.city ?? '',
+    branch: initialDraft.branch ?? '',
+    paymentMethod: initialDraft.paymentMethod ?? 'cash_on_delivery',
     comment: initialDraft.comment ?? '',
-    durationHours: String(initialDraft.durationHours ?? '1'),
-    needsConsultation: Boolean(initialDraft.needsConsultation),
   }
 
   const [draft, setDraft] = useState(() => ({ ...initialValues }))
@@ -40,15 +60,24 @@ export default function OrderPage({
     }
   }, [])
 
-  const validation = validateOrder({ ...draft, gameId: game.id }, [game])
+  const primaryGameId = game?.id || effectiveItems[0]?.gameId || 'game-001'
+  const validation = validateOrder(
+    { ...draft, gameId: primaryGameId, orderedItems: effectiveItems },
+    game ? [game] : [],
+  )
+
   const errors = Object.fromEntries(
     Object.entries(validation.errors).filter(([field]) => attempted || touched[field]),
   )
 
   const isDirty =
-    draft.comment !== initialValues.comment ||
-    draft.durationHours !== initialValues.durationHours ||
-    draft.needsConsultation !== initialValues.needsConsultation
+    draft.fullName !== initialValues.fullName ||
+    draft.phone !== initialValues.phone ||
+    draft.deliveryService !== initialValues.deliveryService ||
+    draft.city !== initialValues.city ||
+    draft.branch !== initialValues.branch ||
+    draft.paymentMethod !== initialValues.paymentMethod ||
+    draft.comment !== initialValues.comment
 
   function handleChange(field, value) {
     setDraft((prev) => ({ ...prev, [field]: value }))
@@ -67,7 +96,7 @@ export default function OrderPage({
     setOperationError('')
 
     if (!validation.ok) {
-      const firstField = ['comment', 'durationHours', 'needsConsultation'].find(
+      const firstField = ['fullName', 'phone', 'deliveryService', 'city', 'branch'].find(
         (f) => validation.errors[f],
       )
       if (firstField) {
@@ -85,11 +114,11 @@ export default function OrderPage({
         setOperationError(
           result.errors
             ? Object.values(result.errors).join(' ')
-            : result.message || 'Не вдалося зберегти заявку.',
+            : result.message || 'Не вдалося зберегти замовлення.',
         )
       }
     } catch {
-      if (alive.current) setOperationError('Не вдалося завершити операцію збереження.')
+      if (alive.current) setOperationError('Не вдалося завершити оформлення замовлення.')
     } finally {
       submitting.current = false
       if (alive.current) setIsSubmitting(false)
@@ -98,7 +127,7 @@ export default function OrderPage({
 
   function handleReset() {
     if (submitting.current || !isDirty) return
-    if (!window.confirm('Відкинути зміни та відновити початкові значення?')) return
+    if (!window.confirm('Очистити внесені контактні дані та адресу?')) return
     setDraft({ ...initialValues })
     setTouched({})
     setAttempted(false)
@@ -107,41 +136,71 @@ export default function OrderPage({
 
   function handleCancel() {
     if (submitting.current) return
-    if (isDirty && !window.confirm('Вийти та відкинути незбережені зміни?')) return
+    if (isDirty && !window.confirm('Вийти та скасувати заповнення форми?')) return
     onCancel()
   }
 
   return (
-    <Section id="order-form-section" title={title}>
-      <PageHeading title={title} />
-      <div className="order-page-layout">
-        <div className="selected-game-banner">
-          <p>
-            Обрана гра: <strong>«{game.title}»</strong> ({game.price} ₴) —{' '}
-            <AvailabilityBadge available={game.inStock} />
-          </p>
-          <AppButton variant="secondary" onClick={handleCancel} disabled={isSubmitting}>
-            {cancelLabel}
-          </AppButton>
-        </div>
+    <div className="order-page-wrapper">
+      <Section id="order-form-section" title={title}>
+        <PageHeading title={title} />
 
-        <div className="order-split-grid">
-          <OrderForm
-            idPrefix="order-form"
-            gameTitle={game.title}
-            draft={draft}
-            errors={errors}
-            operationError={operationError}
-            isSubmitting={isSubmitting}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            onSubmit={handleSubmit}
-            onReset={handleReset}
-            submitLabel={submitLabel}
-          />
-          <OrderSummary gameTitle={game.title} draft={draft} />
+        <div className="order-page-layout">
+          {/* Banner */}
+          <div className="selected-game-banner">
+            <div className="banner-game-info">
+              <span className="banner-game-icon-wrap">
+                <TargetIcon size={22} className="banner-icon-svg" />
+              </span>
+              <div className="banner-text-group">
+                <span className="banner-subtitle">
+                  {effectiveItems.length > 1 ? 'Товари в замовленні:' : 'Товар до покупки:'}
+                </span>
+                <div className="banner-title-line">
+                  {effectiveItems.length > 1 ? (
+                    <strong className="banner-game-title">
+                      {effectiveItems.length} настільних ігор у кошику
+                    </strong>
+                  ) : game ? (
+                    <>
+                      <strong className="banner-game-title">«{game.title}»</strong>
+                      <span className="banner-game-price">{game.price} ₴</span>
+                      <AvailabilityBadge available={game.inStock} />
+                    </>
+                  ) : (
+                    <strong className="banner-game-title">Товар із кошика</strong>
+                  )}
+                </div>
+              </div>
+            </div>
+            {onCancel && (
+              <AppButton variant="secondary" onClick={handleCancel} disabled={isSubmitting}>
+                {cancelLabel}
+              </AppButton>
+            )}
+          </div>
+
+          <div className="order-split-grid">
+            <div className="order-form-column">
+              <OrderForm
+                idPrefix="order-form"
+                draft={draft}
+                errors={errors}
+                operationError={operationError}
+                isSubmitting={isSubmitting}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                onSubmit={handleSubmit}
+                onReset={handleReset}
+                submitLabel={submitLabel}
+              />
+            </div>
+            <div className="order-summary-column">
+              <OrderSummary draft={draft} orderedItems={effectiveItems} />
+            </div>
+          </div>
         </div>
-      </div>
-    </Section>
+      </Section>
+    </div>
   )
 }

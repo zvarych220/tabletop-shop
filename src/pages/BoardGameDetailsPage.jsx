@@ -1,44 +1,30 @@
-import { Link, useNavigate, useParams } from 'react-router'
-import PageHeading from '../components/ui/PageHeading.jsx'
-import AppButton from '../components/ui/AppButton.jsx'
-import AvailabilityBadge from '../components/games/AvailabilityBadge.jsx'
-import useBoardGameSelection from '../hooks/useBoardGameSelection.js'
+import { useState } from 'react'
+import { Link, useParams } from 'react-router'
 import NotFoundPage from './NotFoundPage.jsx'
+import useCart from '../hooks/useCart.js'
 import {
-  SwordsIcon,
-  PartyIcon,
-  CompassIcon,
-  FeatherIcon,
-  DiceIcon,
   UsersIcon,
   ClockIcon,
-  CoinsIcon,
   ShieldCheckIcon,
-  PackageIcon,
-  MessageSquareIcon,
+  TruckIcon,
+  RotateCcwIcon,
+  CheckIcon,
+  ParcelIcon,
+  PostIcon,
+  CreditCardIcon,
+  CashIcon,
 } from '../components/ui/Icons.jsx'
-
-function renderCategoryIcon(category) {
-  switch (category) {
-    case 'Стратегія':
-      return <SwordsIcon size={36} className="details-svg-icon" />
-    case 'Паті-гра':
-      return <PartyIcon size={36} className="details-svg-icon" />
-    case 'Кооперативна':
-      return <CompassIcon size={36} className="details-svg-icon" />
-    case 'Сімейна':
-      return <FeatherIcon size={36} className="details-svg-icon" />
-    default:
-      return <DiceIcon size={36} className="details-svg-icon" />
-  }
-}
 
 export default function BoardGameDetailsPage({ items }) {
   const { gameId } = useParams()
-  const navigate = useNavigate()
-  const { selectGame } = useBoardGameSelection()
+  const { addToCart } = useCart()
 
   const game = items.find((entry) => entry.id === gameId)
+
+  const [quantity, setQuantity] = useState(1)
+  const [activeTab, setActiveTab] = useState('desc') // 'desc' | 'components' | 'reviews'
+  const [isWishlisted, setIsWishlisted] = useState(false)
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
 
   if (!game) {
     return (
@@ -49,99 +35,297 @@ export default function BoardGameDetailsPage({ items }) {
     )
   }
 
-  function handleOrder() {
-    selectGame(game.id)
-    navigate(`/orders/new?gameId=${game.id}`)
+  // Gallery images (main + detail shots)
+  const gallery = [
+    game.image,
+    'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1606167668584-78701c57f13d?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1585504198199-20277593b94f?auto=format&fit=crop&w=800&q=80',
+  ]
+
+  // Related games (exclude current)
+  const relatedGames = items.filter((g) => g.id !== game.id).slice(0, 4)
+
+  function handleAddToCart() {
+    addToCart(game, quantity)
   }
 
   return (
-    <div className="game-details-page">
-      <nav aria-label="Хлібні крихти" className="breadcrumbs-nav">
-        <Link to="/" className="breadcrumb-link">Головна</Link>
-        <span className="breadcrumb-separator">/</span>
-        <Link to="/games" className="breadcrumb-link">Каталог</Link>
-        <span className="breadcrumb-separator">/</span>
-        <span className="breadcrumb-current" aria-current="page">{game.title}</span>
+    <div className="product-details-page">
+      {/* Breadcrumbs */}
+      <nav aria-label="Хлібні крихти" className="product-breadcrumbs">
+        <Link to="/" className="bc-link">Головна</Link>
+        <span className="bc-sep">/</span>
+        <Link to="/games" className="bc-link">Каталог</Link>
+        <span className="bc-sep">/</span>
+        <span className="bc-cat">{game.category}</span>
+        <span className="bc-sep">/</span>
+        <span className="bc-current" aria-current="page">{game.title}</span>
       </nav>
 
-      <div className="details-card">
-        <div className="details-card-hero">
-          <div className={`details-art-badge card-art-${game.id}`}>
-            <div className="details-art-icon" aria-hidden="true">
-              {renderCategoryIcon(game.category)}
-            </div>
+      {/* Main Product Layout (Screenshot 3) */}
+      <div className="product-main-grid">
+        {/* Left: Gallery */}
+        <div className="product-gallery-col">
+          <div className="product-main-image-wrap">
+            {game.discount && (
+              <span className="product-gallery-sale-badge">Sale {game.discount}</span>
+            )}
+            <img
+              src={gallery[activeImageIndex] || game.image}
+              alt={game.title}
+              className="product-main-image"
+            />
           </div>
-          <div className="details-heading-group">
-            <div className="details-header">
-              <span className="game-category">{game.category}</span>
-              <AvailabilityBadge available={game.inStock} />
-            </div>
-            <PageHeading title={game.title} />
+
+          <div className="product-thumbnails-row">
+            {gallery.map((imgSrc, idx) => (
+              <button
+                key={idx}
+                type="button"
+                className={`product-thumb-btn ${activeImageIndex === idx ? 'active' : ''}`}
+                onClick={() => setActiveImageIndex(idx)}
+                aria-label={`Переглянути зображення ${idx + 1}`}
+              >
+                <img src={imgSrc} alt="" className="product-thumb-img" />
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="details-content-body">
-          <div className="details-desc-box">
-            <h3 className="section-subheading">Про гру</h3>
-            <p className="details-description">{game.description}</p>
+        {/* Right: Info & Actions */}
+        <div className="product-summary-col">
+          <div className="product-category-tag">{game.category}</div>
+          <h1 className="product-headline">{game.title}</h1>
+
+          <div className="product-rating-row">
+            <span className="product-stars">{'★'.repeat(game.rating || 5)}</span>
+            <span className="product-reviews-count">({game.ratingCount || 142} відгуки покупців)</span>
           </div>
 
-          <div className="details-grid-specs">
-            <div className="spec-card">
-              <span className="spec-card-icon-wrap">
-                <UsersIcon size={22} className="spec-card-svg" />
-              </span>
-              <div className="spec-card-text">
-                <span className="spec-card-label">Кількість гравців</span>
-                <strong className="spec-card-value">{game.players}</strong>
-              </div>
-            </div>
-            <div className="spec-card">
-              <span className="spec-card-icon-wrap">
-                <ClockIcon size={22} className="spec-card-svg" />
-              </span>
-              <div className="spec-card-text">
-                <span className="spec-card-label">Час партії</span>
-                <strong className="spec-card-value">{game.playTime}</strong>
-              </div>
-            </div>
-            <div className="spec-card spec-card-price">
-              <span className="spec-card-icon-wrap">
-                <CoinsIcon size={22} className="spec-card-svg" />
-              </span>
-              <div className="spec-card-text">
-                <span className="spec-card-label">Вартість</span>
-                <strong className="spec-card-value price-highlight">{game.price} ₴</strong>
-              </div>
-            </div>
+          <div className="product-price-block">
+            {game.oldPrice && (
+              <span className="product-price-old">{game.oldPrice} ₴</span>
+            )}
+            <span className="product-price-current">{game.price} ₴</span>
+            <span className={`product-stock-badge ${game.inStock ? 'in-stock' : 'out-of-stock'}`}>
+              {game.inStock ? '✓ В наявності' : 'Під замовлення'}
+            </span>
           </div>
 
-          <div className="details-perks">
-            <div className="perk-item">
-              <ShieldCheckIcon size={20} className="perk-svg" />
-              <span>100% оригінальне ліцензійне видання</span>
+          <p className="product-short-desc">{game.description}</p>
+
+          <div className="product-specs-pills">
+            <div className="spec-pill">
+              <UsersIcon size={16} />
+              <span>{game.players}</span>
             </div>
-            <div className="perk-item">
-              <PackageIcon size={20} className="perk-svg" />
-              <span>Надійно пакуємо у фірмову плівку та картон</span>
+            <div className="spec-pill">
+              <ClockIcon size={16} />
+              <span>{game.playTime}</span>
             </div>
-            <div className="perk-item">
-              <MessageSquareIcon size={20} className="perk-svg" />
-              <span>Можливість консультації щодо правил та аксесуарів</span>
+            <div className="spec-pill">
+              <span>🇺🇦 Українська мова</span>
             </div>
           </div>
 
-          <div className="details-actions">
-            <AppButton onClick={handleOrder} variant="primary">
-              <span>Обрати та перейти до замовлення</span>
-              <span aria-hidden="true">→</span>
-            </AppButton>
-            <Link to="/games" className="app-button app-button-secondary">
-              ← Повернутися до каталогу
-            </Link>
+          {/* Add to Cart Controls */}
+          <div className="product-purchase-row">
+            <div className="product-qty-stepper">
+              <button
+                type="button"
+                className="qty-btn"
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                aria-label="Зменшити кількість"
+              >
+                −
+              </button>
+              <span className="qty-number">{quantity}</span>
+              <button
+                type="button"
+                className="qty-btn"
+                onClick={() => setQuantity((q) => Math.min(10, q + 1))}
+                aria-label="Збільшити кількість"
+              >
+                +
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="product-add-cart-btn"
+              onClick={handleAddToCart}
+            >
+              Додати в кошик • {game.price * quantity} ₴
+            </button>
+          </div>
+
+          <div className="product-wishlist-row">
+            <button
+              type="button"
+              className={`product-wishlist-btn ${isWishlisted ? 'active' : ''}`}
+              onClick={() => setIsWishlisted((prev) => !prev)}
+            >
+              <span>{isWishlisted ? '♥' : '♡'}</span>
+              <span>{isWishlisted ? 'В обраному' : 'Додати до списку бажань'}</span>
+            </button>
+          </div>
+
+          {/* Perks */}
+          <div className="product-perks-list">
+            <div className="product-perk-item">
+              <TruckIcon size={18} className="perk-icon" />
+              <span><strong>Безкоштовна доставка</strong> при замовленні від 1500 ₴</span>
+            </div>
+            <div className="product-perk-item">
+              <ShieldCheckIcon size={18} className="perk-icon" />
+              <span><strong>100% ліцензійне оригінальне видання</strong> найвищої якості</span>
+            </div>
+            <div className="product-perk-item">
+              <RotateCcwIcon size={18} className="perk-icon" />
+              <span><strong>Гарантія повної комплектації</strong> та обмін 14 днів</span>
+            </div>
+          </div>
+
+          {/* Safe checkout & delivery badges */}
+          <div className="product-guarantee-box">
+            <span className="guarantee-title">ОФІЦІЙНА ДОСТАВКА ТА ОПЛАТА:</span>
+            <div className="carrier-badges-row">
+              <span className="carrier-badge"><ParcelIcon size={14} className="badge-icon-svg" /> Нова Пошта</span>
+              <span className="carrier-badge"><PostIcon size={14} className="badge-icon-svg" /> Укрпошта</span>
+              <span className="payment-badge"><CreditCardIcon size={14} className="badge-icon-svg" /> Visa / Mastercard</span>
+              <span className="payment-badge"><CashIcon size={14} className="badge-icon-svg" /> При отриманні</span>
+            </div>
+          </div>
+
+          <div className="product-meta-details">
+            <div className="meta-line">
+              <span className="meta-label">Артикул:</span>
+              <span className="meta-val">DND-0{game.id.replace('game-', '')}</span>
+            </div>
+            <div className="meta-line">
+              <span className="meta-label">Категорія:</span>
+              <span className="meta-val">{game.category}</span>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Product Tabs (Description / Rules / Reviews) */}
+      <div className="product-tabs-section">
+        <div className="product-tabs-nav" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'desc'}
+            className={`tab-nav-btn ${activeTab === 'desc' ? 'active' : ''}`}
+            onClick={() => setActiveTab('desc')}
+          >
+            Опис гри
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'components'}
+            className={`tab-nav-btn ${activeTab === 'components' ? 'active' : ''}`}
+            onClick={() => setActiveTab('components')}
+          >
+            Комплектація та правила
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'reviews'}
+            className={`tab-nav-btn ${activeTab === 'reviews' ? 'active' : ''}`}
+            onClick={() => setActiveTab('reviews')}
+          >
+            Відгуки ({game.ratingCount || 142})
+          </button>
+        </div>
+
+        <div className="product-tab-content">
+          {activeTab === 'desc' && (
+            <div className="tab-pane">
+              <p className="tab-paragraph">
+                «{game.title}» — це визнаний шедевр у жанрі {game.category.toLowerCase()}, який подарує вам
+                незабутні години тактичних рішень, інтриги та азарту. Гра ідеально збалансована для {game.players},
+                а партія триває приблизно {game.playTime}.
+              </p>
+              <p className="tab-paragraph">
+                Видання повністю перекладено українською мовою. Коробка містить високоякісні компоненти,
+                дерева або пластикові мініатюри, щільні карти з художніми ілюстраціями та буклет з чіткими правилами.
+              </p>
+            </div>
+          )}
+
+          {activeTab === 'components' && (
+            <div className="tab-pane">
+              <h4 className="tab-subheading">Вміст коробки:</h4>
+              <ul className="components-list">
+                <li><CheckIcon size={14} /> 1 велике ігрове поле преміальної якості</li>
+                <li><CheckIcon size={14} /> Повний набір художніх карт із щільним лляним тисненням</li>
+                <li><CheckIcon size={14} /> Комплект дерев'яних фішок та маркерів гравців</li>
+                <li><CheckIcon size={14} /> Жетони ресурсів та переможних балів</li>
+                <li><CheckIcon size={14} /> Детальна книга правил українською мовою з прикладами</li>
+              </ul>
+            </div>
+          )}
+
+          {activeTab === 'reviews' && (
+            <div className="tab-pane">
+              <div className="reviews-list">
+                <div className="review-item">
+                  <div className="review-header">
+                    <strong>Максим К.</strong>
+                    <span className="review-stars">★★★★★</span>
+                    <span className="review-date">2 дні тому</span>
+                  </div>
+                  <p className="review-text">
+                    Неймовірна гра! Доставка Новою Поштою прибула наступного дня, запаковано було в бронебійну пупирку.
+                    Правила зрозумілі, грали вже три вечори поспіль!
+                  </p>
+                </div>
+                <div className="review-item">
+                  <div className="review-header">
+                    <strong>Олена В.</strong>
+                    <span className="review-stars">★★★★★</span>
+                    <span className="review-date">Тиждень тому</span>
+                  </div>
+                  <p className="review-text">
+                    Якість компонентів на найвищому рівні. Купували на подарунок другові, дуже задоволені!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Related Products Grid (Screenshot 4) */}
+      <section className="related-products-section">
+        <h2 className="related-section-title">СХОЖІ НАСТІЛЬНІ ІГРИ</h2>
+        <div className="related-products-grid">
+          {relatedGames.map((relGame) => (
+            <div key={relGame.id} className="related-card">
+              <div className="related-img-wrap">
+                <img src={relGame.image} alt={relGame.title} className="related-img" />
+              </div>
+              <h3 className="related-title">
+                <Link to={`/games/${relGame.id}`}>{relGame.title}</Link>
+              </h3>
+              <div className="related-stars">{'★'.repeat(relGame.rating || 5)}</div>
+              <span className="related-price">{relGame.price} ₴</span>
+              <button
+                type="button"
+                className="related-add-btn"
+                onClick={() => addToCart(relGame, 1)}
+              >
+                В кошик
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }

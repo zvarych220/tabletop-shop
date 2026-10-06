@@ -4,10 +4,10 @@ import { SearchIcon, RotateCcwIcon } from '../ui/Icons.jsx'
 
 export default function OrderFilters({
   query,
-  consultation,
+  carrier,
   sort,
   onQueryChange,
-  onConsultationChange,
+  onCarrierChange,
   onSortChange,
   onReset,
 }) {
@@ -19,7 +19,7 @@ export default function OrderFilters({
           <input
             id="filter-order-search"
             type="text"
-            placeholder="Пошук за назвою гри або коментарем..."
+            placeholder="Пошук за прізвищем, телефоном, містом або грою..."
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             className="form-input search-input"
@@ -39,16 +39,16 @@ export default function OrderFilters({
       </FormField>
 
       <div className="filters-inline-grid">
-        <FormField id="filter-consult" label="Консультація">
+        <FormField id="filter-carrier" label="Служба доставки">
           <select
-            id="filter-consult"
-            value={consultation}
-            onChange={(e) => onConsultationChange(e.target.value)}
+            id="filter-carrier"
+            value={carrier}
+            onChange={(e) => onCarrierChange(e.target.value)}
             className="form-select"
           >
-            <option value="all">Усі заявки</option>
-            <option value="yes">Потрібна консультація</option>
-            <option value="no">Без консультації</option>
+            <option value="all">Усі перевізники</option>
+            <option value="nova_poshta">Нова Пошта</option>
+            <option value="ukr_poshta">Укрпошта</option>
           </select>
         </FormField>
 
@@ -59,9 +59,9 @@ export default function OrderFilters({
             onChange={(e) => onSortChange(e.target.value)}
             className="form-select"
           >
-            <option value="game">За назвою гри</option>
-            <option value="duration-asc">Тривалість: від меншої</option>
-            <option value="duration-desc">Тривалість: від більшої</option>
+            <option value="latest">Спочатку новіші</option>
+            <option value="price-desc">Сума: від найбільшої</option>
+            <option value="price-asc">Сума: від найменшої</option>
           </select>
         </FormField>
       </div>

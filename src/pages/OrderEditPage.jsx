@@ -21,10 +21,21 @@ export default function OrderEditPage({ items }) {
   }, [orderId])
 
   const order = orders.find((o) => o.id === orderId)
-  if (!order) return <NotFoundPage title="Заявку не знайдено" message={`Заявку #${orderId} не знайдено.`} />
+  if (!order) {
+    return (
+      <NotFoundPage
+        title="Замовлення не знайдено"
+        message={`Замовлення #${orderId} не знайдено в базі даних.`}
+      />
+    )
+  }
 
   const game = items.find((g) => g.id === order.gameId)
-  if (!game) return <NotFoundPage title="Товар відсутній" message="Гру для цієї заявки було видалено." />
+  const effectiveItems = order.orderedItems?.length > 0
+    ? order.orderedItems
+    : game
+    ? [{ gameId: game.id, title: game.title, price: game.price, quantity: 1 }]
+    : []
 
   async function handleSave(input) {
     const result = await updateOrder(order.id, input)
@@ -37,12 +48,18 @@ export default function OrderEditPage({ items }) {
   return (
     <OrderPage
       key={`edit-${order.id}`}
-      title={`Редагування заявки #${order.id}`}
+      title={`Редагування замовлення #${order.id}`}
       game={game}
+      orderedItems={effectiveItems}
       initialDraft={{
-        comment: order.comment,
-        durationHours: order.durationHours,
-        needsConsultation: order.needsConsultation,
+        fullName: order.fullName || '',
+        phone: order.phone || '',
+        deliveryService: order.deliveryService || 'nova_poshta',
+        city: order.city || '',
+        branch: order.branch || '',
+        paymentMethod: order.paymentMethod || 'cash_on_delivery',
+        comment: order.comment || '',
+        orderedItems: effectiveItems,
       }}
       onSave={handleSave}
       onCancel={() => navigate(`/orders/${encodeURIComponent(order.id)}`)}
