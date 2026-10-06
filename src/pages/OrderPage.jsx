@@ -1,11 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import PageHeading from '../components/ui/PageHeading.jsx'
 import Section from '../components/ui/Section.jsx'
 import AppButton from '../components/ui/AppButton.jsx'
 import AvailabilityBadge from '../components/games/AvailabilityBadge.jsx'
 import OrderForm from '../components/orders/OrderForm.jsx'
 import OrderSummary from '../components/orders/OrderSummary.jsx'
-import { TargetIcon } from '../components/ui/Icons.jsx'
 import { validateOrder } from '../domain/orderValidation.js'
 
 const emptyDraft = { comment: '', durationHours: '1', needsConsultation: false }
@@ -29,9 +28,19 @@ export default function OrderPage({
   const [touched, setTouched] = useState({})
   const [attempted, setAttempted] = useState(false)
   const [operationError, setOperationError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const submitting = useRef(false)
+  const alive = useRef(false)
+
+  useEffect(() => {
+    alive.current = true
+    return () => {
+      alive.current = false
+    }
+  }, [])
 
   const validation = validateOrder({ ...draft, gameId: game.id }, [game])
-
   const errors = Object.fromEntries(
     Object.entries(validation.errors).filter(([field]) => attempted || touched[field]),
   )
@@ -50,8 +59,10 @@ export default function OrderPage({
     setTouched((prev) => ({ ...prev, [field]: true }))
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
+    if (submitting.current) return
+
     setAttempted(true)
     setOperationError('')
 
@@ -65,14 +76,28 @@ export default function OrderPage({
       return
     }
 
-    const result = onSave(validation.value)
-    if (!result.ok) {
-      setOperationError(result.message || Object.values(result.errors || {}).join(' '))
+    submitting.current = true
+    setIsSubmitting(true)
+
+    try {
+      const result = await onSave(validation.value)
+      if (!result.ok && alive.current) {
+        setOperationError(
+          result.errors
+            ? Object.values(result.errors).join(' ')
+            : result.message || 'Не вдалося зберегти заявку.',
+        )
+      }
+    } catch {
+      if (alive.current) setOperationError('Не вдалося завершити операцію збереження.')
+    } finally {
+      submitting.current = false
+      if (alive.current) setIsSubmitting(false)
     }
   }
 
   function handleReset() {
-    if (!isDirty) return
+    if (submitting.current || !isDirty) return
     if (!window.confirm('Відкинути зміни та відновити початкові значення?')) return
     setDraft({ ...initialValues })
     setTouched({})
@@ -81,57 +106,42 @@ export default function OrderPage({
   }
 
   function handleCancel() {
+    if (submitting.current) return
     if (isDirty && !window.confirm('Вийти та відкинути незбережені зміни?')) return
     onCancel()
   }
 
   return (
-    <div className="order-page-wrapper">
-      <Section id="order-form-section" title={title}>
-        <PageHeading title={title} />
-        <div className="order-page-layout">
-          <div className="selected-game-banner">
-            <div className="banner-game-info">
-              <span className="banner-game-icon-wrap">
-                <TargetIcon size={22} className="banner-icon-svg" />
-              </span>
-              <div className="banner-text-group">
-                <span className="banner-subtitle">Товар у заявці:</span>
-                <div className="banner-title-line">
-                  <strong className="banner-game-title">«{game.title}»</strong>
-                  <span className="banner-game-price">{game.price} ₴</span>
-                  <AvailabilityBadge available={game.inStock} />
-                </div>
-              </div>
-            </div>
-            {onCancel && (
-              <AppButton variant="secondary" onClick={handleCancel}>
-                {cancelLabel}
-              </AppButton>
-            )}
-          </div>
-
-          <div className="order-split-grid">
-            <div className="order-form-column">
-              <OrderForm
-                idPrefix="order-form"
-                gameTitle={game.title}
-                draft={draft}
-                errors={errors}
-                operationError={operationError}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                onSubmit={handleSubmit}
-                onReset={handleReset}
-                submitLabel={submitLabel}
-              />
-            </div>
-            <div className="order-summary-column">
-              <OrderSummary gameTitle={game.title} draft={draft} />
-            </div>
-          </div>
+    <Section id="order-form-section" title={title}>
+      <PageHeading title={title} />
+      <div className="order-page-layout">
+        <div className="selected-game-banner">
+          <p>
+            Обрана гра: <strong>«{game.title}»</strong> ({game.price} ₴) —{' '}
+            <AvailabilityBadge available={game.inStock} />
+          </p>
+          <AppButton variant="secondary" onClick={handleCancel} disabled={isSubmitting}>
+            {cancelLabel}
+          </AppButton>
         </div>
-      </Section>
-    </div>
+
+        <div className="order-split-grid">
+          <OrderForm
+            idPrefix="order-form"
+            gameTitle={game.title}
+            draft={draft}
+            errors={errors}
+            operationError={operationError}
+            isSubmitting={isSubmitting}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onSubmit={handleSubmit}
+            onReset={handleReset}
+            submitLabel={submitLabel}
+          />
+          <OrderSummary gameTitle={game.title} draft={draft} />
+        </div>
+      </div>
+    </Section>
   )
 }

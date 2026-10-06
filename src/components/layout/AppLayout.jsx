@@ -19,7 +19,7 @@ export default function AppLayout({ items }) {
       <main id="main-content" tabIndex={-1} className="main-container">
         <div className="main-container-inner">
           <BoardGameSelectionProvider items={items}>
-            <OrdersProvider items={items}>
+            <OrdersProvider>
               <Outlet />
             </OrdersProvider>
           </BoardGameSelectionProvider>
