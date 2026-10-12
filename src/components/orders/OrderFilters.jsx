@@ -4,22 +4,22 @@ import { SearchIcon, RotateCcwIcon } from '../ui/Icons.jsx'
 
 export default function OrderFilters({
   query,
-  carrier,
+  consultation,
   sort,
   onQueryChange,
-  onCarrierChange,
+  onConsultationChange,
   onSortChange,
   onReset,
 }) {
   return (
     <div className="catalog-filters order-filters-box">
-      <FormField id="filter-order-search" label="Пошук у замовленнях">
+      <FormField id="filter-order-search" label="Пошук у заявках">
         <div className="search-input-wrapper">
           <SearchIcon size={16} className="search-icon-svg" />
           <input
             id="filter-order-search"
             type="text"
-            placeholder="Пошук за прізвищем, телефоном, містом або грою..."
+            placeholder="Пошук за грою чи коментарем..."
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             className="form-input search-input"
@@ -39,16 +39,16 @@ export default function OrderFilters({
       </FormField>
 
       <div className="filters-inline-grid">
-        <FormField id="filter-carrier" label="Служба доставки">
+        <FormField id="filter-consultation" label="Консультація">
           <select
-            id="filter-carrier"
-            value={carrier}
-            onChange={(e) => onCarrierChange(e.target.value)}
+            id="filter-consultation"
+            value={consultation}
+            onChange={(e) => onConsultationChange(e.target.value)}
             className="form-select"
           >
-            <option value="all">Усі перевізники</option>
-            <option value="nova_poshta">Нова Пошта</option>
-            <option value="ukr_poshta">Укрпошта</option>
+            <option value="all">Усі заявки</option>
+            <option value="yes">З консультацією</option>
+            <option value="no">Без консультації</option>
           </select>
         </FormField>
 
@@ -59,9 +59,9 @@ export default function OrderFilters({
             onChange={(e) => onSortChange(e.target.value)}
             className="form-select"
           >
-            <option value="latest">Спочатку новіші</option>
-            <option value="price-desc">Сума: від найбільшої</option>
-            <option value="price-asc">Сума: від найменшої</option>
+            <option value="name">За назвою гри</option>
+            <option value="duration-asc">Тривалість: за зростанням</option>
+            <option value="duration-desc">Тривалість: за спаданням</option>
           </select>
         </FormField>
       </div>
@@ -69,7 +69,7 @@ export default function OrderFilters({
       <div className="filters-actions-row">
         <AppButton variant="secondary" onClick={onReset}>
           <RotateCcwIcon size={15} className="reset-icon-svg" />
-          <span>Скинути умови</span>
+          <span>Скинути фільтри</span>
         </AppButton>
       </div>
     </div>

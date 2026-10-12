@@ -5,7 +5,7 @@ import AppButton from '../components/ui/AppButton.jsx'
 import useOrders from '../hooks/useOrders.js'
 import useDeleteOrder from '../hooks/useDeleteOrder.js'
 import NotFoundPage from './NotFoundPage.jsx'
-import { DiceIcon, TruckIcon, ShieldCheckIcon, CreditCardIcon, CashIcon } from '../components/ui/Icons.jsx'
+import { DiceIcon, ShieldCheckIcon } from '../components/ui/Icons.jsx'
 
 export default function OrderDetailsPage({ items }) {
   const { orderId } = useParams()
@@ -26,22 +26,13 @@ export default function OrderDetailsPage({ items }) {
   if (!order) {
     return (
       <NotFoundPage
-        title="Замовлення не знайдено"
-        message={`Замовлення #${orderId} не знайдено в базі даних.`}
+        title="Заявку не знайдено"
+        message={`Заявку #${orderId} не знайдено в системі.`}
       />
     )
   }
 
-  const effectiveItems = order.orderedItems?.length > 0
-    ? order.orderedItems
-    : items.filter((g) => g.id === order.gameId).map((g) => ({
-        gameId: g.id,
-        title: g.title,
-        price: g.price,
-        quantity: 1,
-      }))
-
-  const totalSum = order.totalPrice || effectiveItems.reduce((acc, it) => acc + (it.price || 0) * (it.quantity || 1), 0)
+  const game = items.find((g) => g.id === order.gameId)
 
   async function handleDelete() {
     if (isMutating) return
@@ -60,12 +51,12 @@ export default function OrderDetailsPage({ items }) {
       <nav aria-label="Хлібні крихти" className="breadcrumbs-nav">
         <Link to="/" className="breadcrumb-link">Головна</Link>
         <span className="breadcrumb-separator">/</span>
-        <Link to="/orders" className="breadcrumb-link">Замовлення</Link>
+        <Link to="/orders" className="breadcrumb-link">Заявки</Link>
         <span className="breadcrumb-separator">/</span>
-        <span className="breadcrumb-current" aria-current="page">Замовлення #{order.id}</span>
+        <span className="breadcrumb-current" aria-current="page">Заявка #{order.id}</span>
       </nav>
 
-      <PageHeading title={`Замовлення #${order.id}`} />
+      <PageHeading title={`Заявка #${order.id}`} />
       {error && <p className="field-error form-top-error" role="alert">{error}</p>}
 
       <div className="details-card order-details-card">
@@ -74,63 +65,36 @@ export default function OrderDetailsPage({ items }) {
             <DiceIcon size={24} className="order-details-dice" />
           </div>
           <div className="order-details-hero-text">
-            <span className="order-details-sub">Покупка в магазині Dice & Deck</span>
+            <span className="order-details-sub">Клуб настільних ігор Dice & Deck</span>
             <h3 className="order-details-game-title">
-              {order.fullName || 'Покупець магазину'} • {totalSum} ₴
+              «{game?.title ?? order.gameId}»
             </h3>
           </div>
         </div>
 
         <div className="order-details-body">
-          {/* Items in order */}
-          <div className="details-ordered-products-box">
-            <h4 className="ordered-products-heading">Замовлені настільні ігри:</h4>
-            <div className="ordered-products-list">
-              {effectiveItems.map((it, idx) => (
-                <div key={idx} className="ordered-product-row">
-                  <span className="ordered-product-title">
-                    <Link to={`/games/${it.gameId}`}>«{it.title}»</Link> × {it.quantity || 1} шт.
-                  </span>
-                  <strong className="ordered-product-price">
-                    {(it.price || 0) * (it.quantity || 1)} ₴
-                  </strong>
-                </div>
-              ))}
-            </div>
-            <div className="ordered-products-total-line">
-              <span>Загальна сума покупки:</span>
-              <strong className="ordered-total-number">{totalSum} ₴</strong>
-            </div>
-          </div>
-
           <dl className="order-details-list">
-            <dt>Одержувач:</dt>
-            <dd><strong>{order.fullName || 'Не вказано'}</strong></dd>
+            <dt>ID заявки:</dt>
+            <dd><code>{order.id}</code></dd>
 
-            <dt>Номер телефону:</dt>
-            <dd>{order.phone || 'Не вказано'}</dd>
-
-            <dt>Служба доставки:</dt>
+            <dt>Настільна гра:</dt>
             <dd>
-              <span className="delivery-method-tag">
-                <TruckIcon size={14} />
-                <span>{order.deliveryService === 'ukr_poshta' ? 'Укрпошта' : 'Нова Пошта'}</span>
-              </span>
+              {game ? (
+                <Link to={`/games/${game.id}`}>«{game.title}»</Link>
+              ) : (
+                order.gameId
+              )}
             </dd>
 
-            <dt>Адреса доставки:</dt>
-            <dd>{order.city ? `${order.city}, ${order.branch}` : 'Не вказано'}</dd>
+            <dt>Тривалість гри:</dt>
+            <dd>{order.durationHours} год.</dd>
 
-            <dt>Спосіб оплати:</dt>
-            <dd>
-              {order.paymentMethod === 'online'
-                ? <><CreditCardIcon size={14} className="detail-icon-svg" /> Онлайн-оплата картою</>
-                : <><CashIcon size={14} className="detail-icon-svg" /> Оплата при отриманні</>}
-            </dd>
+            <dt>Консультація / майстер:</dt>
+            <dd>{order.needsConsultation ? 'Так, потрібна' : 'Ні, не потрібна'}</dd>
 
             {order.comment && (
               <>
-                <dt>Коментар покупця:</dt>
+                <dt>Коментар:</dt>
                 <dd className="order-details-comment">{order.comment}</dd>
               </>
             )}
@@ -138,12 +102,12 @@ export default function OrderDetailsPage({ items }) {
 
           <p className="preview-notice">
             <ShieldCheckIcon size={16} />
-            <span>Дані синхронізовано через асинхронний сервіс. Замовлення готується до відправки.</span>
+            <span>Дані синхронізовано через асинхронний сервіс.</span>
           </p>
 
           <div className="details-actions">
             <Link to={`/orders/${encodeURIComponent(order.id)}/edit`} className="app-button app-button-primary">
-              <span>Редагувати дані</span>
+              <span>Редагувати заявку</span>
               <span aria-hidden="true">→</span>
             </Link>
             <AppButton
@@ -152,10 +116,10 @@ export default function OrderDetailsPage({ items }) {
               disabled={isMutating}
               className="app-button-danger"
             >
-              {isMutating ? 'Скасування…' : 'Скасувати замовлення'}
+              {isMutating ? 'Видалення…' : 'Видалити заявку'}
             </AppButton>
             <Link to="/orders" className="app-button app-button-secondary">
-              ← До всіх замовлень
+              ← До всіх заявок
             </Link>
           </div>
         </div>
