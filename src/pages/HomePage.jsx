@@ -1,7 +1,6 @@
-import { useState } from 'react'
 import { Link } from 'react-router'
 import { boardGames } from '../data/boardGames.js'
-import useCart from '../hooks/useCart.js'
+import BoardGameCard from '../components/games/BoardGameCard.jsx'
 import {
   DiceIcon,
   ShieldCheckIcon,
@@ -15,78 +14,6 @@ import {
   UserCircleIcon,
 } from '../components/ui/Icons.jsx'
 
-function HomeProductCard({ game }) {
-  const [qty, setQty] = useState(1)
-  const { addToCart } = useCart()
-
-  function decrement() {
-    setQty((prev) => (prev > 1 ? prev - 1 : 1))
-  }
-
-  function increment() {
-    setQty((prev) => (prev < 8 ? prev + 1 : prev))
-  }
-
-  return (
-    <div className="lab-product-card">
-      <div className="lab-product-img-wrap">
-        {game.discount && <span className="lab-sale-badge">Sale {game.discount}</span>}
-        <img
-          src={game.image}
-          alt={game.title}
-          className="lab-product-img"
-          loading="lazy"
-        />
-      </div>
-
-      <div className="lab-product-info">
-        <h3 className="lab-product-title">
-          <Link to={`/games/${game.id}`}>{game.title}</Link>
-        </h3>
-
-        <div className="lab-product-stars" aria-label={`Рейтинг ${game.rating || 5} з 5`}>
-          {'★'.repeat(game.rating || 5)}
-          {'☆'.repeat(Math.max(0, 5 - (game.rating || 5)))}
-        </div>
-
-        <div className="lab-product-price-row">
-          {game.oldPrice && (
-            <span className="lab-price-old">{game.oldPrice} ₴</span>
-          )}
-          <span className="lab-price-current">{game.price} ₴</span>
-        </div>
-
-        <div className="lab-qty-row">
-          <button
-            type="button"
-            className="lab-qty-btn"
-            onClick={decrement}
-            aria-label="Зменшити кількість"
-          >
-            −
-          </button>
-          <span className="lab-qty-val">{qty}</span>
-          <button
-            type="button"
-            className="lab-qty-btn"
-            onClick={increment}
-            aria-label="Збільшити кількість"
-          >
-            +
-          </button>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => addToCart(game, qty)}
-          className="lab-add-btn"
-        >
-          В кошик • {game.price * qty} ₴
-        </button>
-      </div>
-    </div>
-  )
-}
 
 export default function HomePage() {
   return (
@@ -259,9 +186,9 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="lab-products-grid">
+        <div className="games-grid">
           {boardGames.map((game) => (
-            <HomeProductCard key={game.id} game={game} />
+            <BoardGameCard key={game.id} game={game} />
           ))}
         </div>
       </section>

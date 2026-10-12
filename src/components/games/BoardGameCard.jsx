@@ -2,18 +2,41 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import useCart from '../../hooks/useCart.js'
 
-export default function BoardGameCard({ game }) {
+/**
+ * Unified product card used in the catalog and on the home page.
+ *
+ * Props:
+ *   game        – board game object from boardGames.js (required)
+ *   selected    – highlight the card (optional, catalog use)
+ *   onSelect    – callback when card is selected (optional, catalog use)
+ *   showQty     – show +/− quantity controls and a combined "В кошик • X ₴" button
+ *                 instead of the two-button layout (optional, home-page use)
+ */
+export default function BoardGameCard({ game, selected, onSelect, showQty = false }) {
   const { addToCart } = useCart()
   const [isWishlisted, setIsWishlisted] = useState(false)
+  const [qty, setQty] = useState(1)
+
+  function decrement() {
+    setQty((prev) => (prev > 1 ? prev - 1 : 1))
+  }
+
+  function increment() {
+    setQty((prev) => (prev < 8 ? prev + 1 : prev))
+  }
 
   return (
-    <article className="lab-catalog-card">
+    <article
+      className={`lab-catalog-card${selected ? ' lab-catalog-card--selected' : ''}`}
+      onClick={onSelect ? () => onSelect(game.id) : undefined}
+    >
       <div className="lab-catalog-img-wrap">
         <button
           type="button"
           className={`card-wishlist-heart ${isWishlisted ? 'active' : ''}`}
           onClick={(e) => {
             e.preventDefault()
+            e.stopPropagation()
             setIsWishlisted((prev) => !prev)
           }}
           aria-label={isWishlisted ? 'Видалити з обраного' : 'Додати в обране'}
@@ -36,7 +59,9 @@ export default function BoardGameCard({ game }) {
       </div>
 
       <div className="lab-catalog-body">
-        <span className="card-cat-label">{game.category}</span>
+        {game.category && (
+          <span className="card-cat-label">{game.category}</span>
+        )}
 
         <h3 className="lab-catalog-title">
           <Link to={`/games/${game.id}`}>{game.title}</Link>
@@ -55,18 +80,57 @@ export default function BoardGameCard({ game }) {
           <span className="lab-price-current">{game.price} ₴</span>
         </div>
 
-        <div className="lab-catalog-card-actions">
-          <button
-            type="button"
-            className="lab-catalog-add-btn"
-            onClick={() => addToCart(game, 1)}
-          >
-            В кошик
-          </button>
-          <Link to={`/games/${game.id}`} className="lab-catalog-details-btn">
-            Деталі
-          </Link>
-        </div>
+        {showQty ? (
+          <>
+            <div className="lab-qty-row">
+              <button
+                type="button"
+                className="lab-qty-btn"
+                onClick={decrement}
+                aria-label="Зменшити кількість"
+              >
+                −
+              </button>
+              <span className="lab-qty-val">{qty}</span>
+              <button
+                type="button"
+                className="lab-qty-btn"
+                onClick={increment}
+                aria-label="Збільшити кількість"
+              >
+                +
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => addToCart(game, qty)}
+              className="lab-catalog-add-btn"
+            >
+              В кошик • {game.price * qty} ₴
+            </button>
+          </>
+        ) : (
+          <div className="lab-catalog-card-actions">
+            <button
+              type="button"
+              className="lab-catalog-add-btn"
+              onClick={(e) => {
+                e.stopPropagation()
+                addToCart(game, 1)
+              }}
+            >
+              В кошик
+            </button>
+            <Link
+              to={`/games/${game.id}`}
+              className="lab-catalog-details-btn"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Деталі
+            </Link>
+          </div>
+        )}
       </div>
     </article>
   )

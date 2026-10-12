@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import NotFoundPage from './NotFoundPage.jsx'
 import useCart from '../hooks/useCart.js'
+import BoardGameCard from '../components/games/BoardGameCard.jsx'
 import {
   UsersIcon,
   ClockIcon,
@@ -304,31 +305,11 @@ export default function BoardGameDetailsPage({ items }) {
         </div>
       </div>
 
-      {/* Related Products Grid (Screenshot 4) */}
       <section className="related-products-section">
         <h2 className="related-section-title">СХОЖІ НАСТІЛЬНІ ІГРИ</h2>
-        <div className="related-products-grid">
+        <div className="games-grid">
           {relatedGames.map((relGame) => (
-            <div key={relGame.id} className="related-card">
-              <div className="related-img-wrap">
-                <img src={relGame.image} alt={relGame.title} className="related-img" />
-              </div>
-              <h3 className="related-title">
-                <Link to={`/games/${relGame.id}`}>{relGame.title}</Link>
-              </h3>
-              <div className="related-stars">
-                {'★'.repeat(relGame.rating || 5)}
-                {'☆'.repeat(Math.max(0, 5 - (relGame.rating || 5)))}
-              </div>
-              <span className="related-price">{relGame.price} ₴</span>
-              <button
-                type="button"
-                className="related-add-btn"
-                onClick={() => addToCart(relGame, 1)}
-              >
-                В кошик
-              </button>
-            </div>
+            <BoardGameCard key={relGame.id} game={relGame} />
           ))}
         </div>
       </section>

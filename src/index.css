@@ -949,8 +949,8 @@ a {
 /* Games Grid */
 .games-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-  gap: 1.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(14.4rem, 1fr));
+  gap: 1.4rem;
 }
 
 /* Game Card */
@@ -2849,13 +2849,13 @@ a {
 }
 
 .lab-price-old {
-  font-size: 0.9rem;
+  font-size: 0.72rem;
   color: #94a3b8;
   text-decoration: line-through;
 }
 
 .lab-price-current {
-  font-size: 1.2rem;
+  font-size: 0.96rem;
   font-weight: 900;
   color: #0f172a;
 }
@@ -3393,15 +3393,15 @@ a {
 
 .card-stars-row {
   color: #f59e0b;
-  font-size: 0.95rem;
-  margin: 0.35rem 0 0.75rem 0;
+  font-size: 0.76rem;
+  margin: 0.28rem 0 0.6rem 0;
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.28rem;
 }
 
 .card-reviews-count {
-  font-size: 0.75rem;
+  font-size: 0.6rem;
   color: #94a3b8;
   font-weight: 600;
 }
@@ -4476,7 +4476,7 @@ a {
 .lab-catalog-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 1rem;
+  border-radius: 0.8rem;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -4503,17 +4503,17 @@ a {
 
 .card-wishlist-heart {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  width: 34px;
-  height: 34px;
+  top: 0.6rem;
+  right: 0.6rem;
+  width: 27px;
+  height: 27px;
   border-radius: 50%;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
+  font-size: 0.92rem;
   cursor: pointer;
   z-index: 3;
   color: #94a3b8;
@@ -4529,27 +4529,27 @@ a {
 }
 
 .lab-catalog-body {
-  padding: 1.25rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
 }
 
 .card-cat-label {
-  font-size: 0.72rem;
+  font-size: 0.6rem;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #2563eb;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.28rem;
 }
 
 .lab-catalog-title {
-  font-size: 1.05rem;
+  font-size: 0.84rem;
   font-weight: 800;
   text-transform: uppercase;
   line-height: 1.3;
-  margin: 0 0 0.4rem 0;
+  margin: 0 0 0.32rem 0;
 }
 
 .lab-catalog-title a {
@@ -4564,8 +4564,8 @@ a {
 .lab-catalog-price-row {
   display: flex;
   align-items: baseline;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
 }
 
 .lab-catalog-card-actions {
@@ -4579,10 +4579,10 @@ a {
   background: #0f172a;
   color: #ffffff;
   border: none;
-  padding: 0.65rem 0;
+  padding: 0.52rem 0;
   border-radius: 4px;
   font-weight: 800;
-  font-size: 0.8rem;
+  font-size: 0.64rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
@@ -4597,10 +4597,10 @@ a {
   background: #f1f5f9;
   color: #0f172a;
   text-decoration: none;
-  padding: 0.65rem 0;
+  padding: 0.52rem 0;
   border-radius: 4px;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.64rem;
   text-align: center;
   transition: background 0.15s;
 }
