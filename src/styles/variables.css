@@ -1,0 +1,65 @@
+/* ==========================================================================
+   Dice & Deck - Modern Tabletop Shop Design System
+   (Zero purple tones - Pure Slate, Royal Sapphire & Warm Amber)
+   ========================================================================== */
+
+:root {
+  /* Typography */
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Color Palette - Clean Royal Sapphire & Warm Tabletop Amber */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-dark: #1e40af;
+  --color-primary-light: #eff6ff;
+  --color-primary-subtle: rgba(37, 99, 235, 0.08);
+
+  --color-accent: #f59e0b;
+  --color-accent-hover: #d97706;
+  --color-accent-light: #fef3c7;
+
+  --color-success: #10b981;
+  --color-success-hover: #059669;
+  --color-success-light: #ecfdf5;
+  --color-success-text: #065f46;
+
+  --color-warning: #f59e0b;
+  --color-warning-light: #fffbeb;
+  --color-warning-text: #92400e;
+
+  /* Neutrals */
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f1f5f9;
+  --color-surface-elevated: #ffffff;
+
+  --color-border: #e2e8f0;
+  --color-border-hover: #cbd5e1;
+  --color-border-focus: #3b82f6;
+
+  --color-text-title: #0f172a;
+  --color-text-main: #334155;
+  --color-text-muted: #64748b;
+  --color-text-subtle: #94a3b8;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px -1px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  --shadow-primary: 0 4px 14px 0 rgba(37, 99, 235, 0.28);
+
+  /* Radii */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

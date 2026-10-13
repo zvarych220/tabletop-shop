@@ -1,0 +1,282 @@
+/* ==========================================================================
+   UI Components: Buttons, Badges, Inputs
+   ========================================================================== */
+
+/* Buttons */
+.app-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  font-family: var(--font-body);
+  font-size: 0.925rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition-normal);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.app-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.app-button-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+.app-button-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-primary-hover) 0%, var(--color-primary-dark) 100%);
+  box-shadow: var(--shadow-primary);
+  transform: translateY(-1px);
+}
+
+.app-button-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.app-button-secondary {
+  background: #ffffff;
+  border-color: var(--color-border);
+  color: var(--color-text-main);
+  box-shadow: var(--shadow-xs);
+}
+
+.app-button-secondary:hover:not(:disabled) {
+  background: var(--color-surface-subtle);
+  border-color: var(--color-border-hover);
+  color: var(--color-text-title);
+  transform: translateY(-1px);
+}
+
+.app-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(40%);
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Form Fields & Inputs */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
+}
+
+.form-field label {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-title);
+}
+
+.form-input, .form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--color-text-title);
+  background-color: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-xs);
+}
+
+.form-input:focus, .form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.form-input::placeholder, .form-textarea::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.read-only-input {
+  background-color: var(--color-surface-subtle);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  cursor: default;
+  border-color: var(--color-border);
+}
+
+.field-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Checkbox */
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0.75rem 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-field input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1.5px solid var(--color-border-hover);
+  border-radius: var(--radius-sm);
+  background-color: #ffffff;
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+  transition: all var(--transition-fast);
+  margin: 0;
+}
+
+.checkbox-field input[type="checkbox"]:checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.checkbox-field input[type="checkbox"]:checked::before {
+  content: "✓";
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.checkbox-field input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.checkbox-field label {
+  font-size: 0.925rem;
+  font-weight: 500;
+  color: var(--color-text-main);
+  cursor: pointer;
+}
+
+/* Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.775rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.status-badge::before {
+  content: '';
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: var(--radius-full);
+}
+
+.status-available {
+  background-color: var(--color-success-light);
+  color: var(--color-success-text);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.status-available::before {
+  background-color: var(--color-success);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+}
+
+.status-out {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning-text);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.status-out::before {
+  background-color: var(--color-warning);
+}
+
+.game-category {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.items-badge, .items-count-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.85rem;
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Empty State */
+.empty-state {
+  padding: 3.5rem 2rem;
+  text-align: center;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-xl);
+  background: #ffffff;
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.empty-state-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.25rem;
+  color: var(--color-text-muted);
+}
+
+.empty-state-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-text-title);
+  margin: 0;
+}
+
+.empty-state-content {
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.empty-state-content p {
+  margin: 0 0 1.25rem 0;
+  font-size: 0.95rem;
+}
+

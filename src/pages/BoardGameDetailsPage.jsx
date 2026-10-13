@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import NotFoundPage from './NotFoundPage.jsx'
 import useCart from '../hooks/useCart.js'
+import useFavorites from '../hooks/useFavorites.js'
 import BoardGameCard from '../components/games/BoardGameCard.jsx'
 import {
   UsersIcon,
@@ -19,13 +20,15 @@ import {
 export default function BoardGameDetailsPage({ items }) {
   const { gameId } = useParams()
   const { addToCart } = useCart()
+  const { isFavorite, toggleFavorite } = useFavorites()
 
   const game = items.find((entry) => entry.id === gameId)
 
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState('desc') // 'desc' | 'components' | 'reviews'
-  const [isWishlisted, setIsWishlisted] = useState(false)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
+
+  const isWishlisted = isFavorite(game?.id || '')
 
   if (!game) {
     return (
@@ -168,7 +171,7 @@ export default function BoardGameDetailsPage({ items }) {
             <button
               type="button"
               className={`product-wishlist-btn ${isWishlisted ? 'active' : ''}`}
-              onClick={() => setIsWishlisted((prev) => !prev)}
+              onClick={() => toggleFavorite(game.id)}
             >
               <span>{isWishlisted ? '♥' : '♡'}</span>
               <span>{isWishlisted ? 'В обраному' : 'Додати до списку бажань'}</span>

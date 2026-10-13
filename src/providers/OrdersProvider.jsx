@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { OrdersContext } from '../context/OrdersContext.js'
 import { orderService } from '../services/orderService.js'
 import { errorMessage } from '../services/ServiceError.js'
+import useAuth from '../hooks/useAuth.js'
 
 export default function OrdersProvider({ children }) {
+  const { user } = useAuth()
   const [orders, setOrders] = useState([])
   const [status, setStatus] = useState('loading') // 'loading' | 'success' | 'error'
   const [error, setError] = useState('')
@@ -81,8 +83,16 @@ export default function OrdersProvider({ children }) {
   }
 
   function createOrder(input) {
+    const enrichedInput = {
+      ...input,
+      userId: user?.id || null,
+      fullName: user?.name || input.fullName || '',
+      phone: user?.phone || input.phone || '',
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    }
     return mutate(
-      () => orderService.create(input),
+      () => orderService.create(enrichedInput),
       (prev, record) => [...prev.filter((entry) => entry.id !== record.id), record],
       'Заявку успішно створено.',
     )

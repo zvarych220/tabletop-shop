@@ -8,6 +8,10 @@ import OrdersPage from './pages/OrdersPage.jsx'
 import OrderCreatePage from './pages/OrderCreatePage.jsx'
 import OrderDetailsPage from './pages/OrderDetailsPage.jsx'
 import OrderEditPage from './pages/OrderEditPage.jsx'
+import LoginPage from './pages/LoginPage.jsx'
+import RegisterPage from './pages/RegisterPage.jsx'
+import ProfilePage from './pages/ProfilePage.jsx'
+import FavoritesPage from './pages/FavoritesPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 import { boardGames } from './data/boardGames.js'
 
@@ -31,6 +35,16 @@ export default function App() {
           <Route path=":orderId" element={<OrderDetailsPage items={boardGames} />} />
           <Route path=":orderId/edit" element={<OrderEditPage items={boardGames} />} />
         </Route>
+
+        {/* Аутентифікація */}
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+
+        {/* Профіль користувача */}
+        <Route path="profile" element={<ProfilePage />} />
+
+        {/* Список обраного */}
+        <Route path="favorites" element={<FavoritesPage />} />
 
         {/* Невідомий маршрут (404) */}
         <Route path="*" element={<NotFoundPage />} />

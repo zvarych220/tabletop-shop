@@ -1,0 +1,415 @@
+/* ==========================================================================
+   Catalog Page & Game Cards
+   ========================================================================== */
+
+.catalog-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.catalog-hero-header {
+  margin-bottom: 0.5rem;
+}
+
+.catalog-subtitle {
+  font-size: 1.05rem;
+  color: var(--color-text-muted);
+  margin: 0.25rem 0 0 0;
+}
+
+.catalog-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.catalog-summary {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.catalog-summary strong {
+  color: var(--color-text-title);
+}
+
+/* Catalog Filters */
+.catalog-filters {
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon-svg {
+  position: absolute;
+  left: 0.95rem;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.search-input {
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  width: 1.4rem;
+  height: 1.4rem;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  transition: all var(--transition-fast);
+}
+
+.search-clear-btn:hover {
+  background: var(--color-border-hover);
+  color: var(--color-text-title);
+}
+
+.filters-secondary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--color-border);
+}
+
+.reset-icon-svg {
+  transition: transform var(--transition-fast);
+}
+
+.app-button:hover .reset-icon-svg {
+  transform: rotate(-45deg);
+}
+
+/* Games Grid */
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14.4rem, 1fr));
+  gap: 1.4rem;
+}
+
+/* Game Card */
+.game-card {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+  position: relative;
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-border-hover);
+}
+
+.game-card-selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary), var(--color-primary-subtle);
+}
+
+/* Card Visual Art Banner */
+.card-art-banner {
+  height: 6.5rem;
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+.card-art-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.15;
+  background-image: radial-gradient(#ffffff 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+
+/* Game Specific Art Themes - NO PURPLE */
+.card-art-game-001 {
+  background: linear-gradient(135deg, #78350f 0%, #b45309 60%, #d97706 100%);
+}
+
+.card-art-game-002 {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #2563eb 100%);
+}
+
+.card-art-game-003 {
+  /* Oceanic horror / dark emerald abyss - no purple */
+  background: linear-gradient(135deg, #022c22 0%, #064e3b 60%, #0f172a 100%);
+}
+
+.card-art-game-004 {
+  background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #0d9488 100%);
+}
+
+.card-art-icon {
+  z-index: 1;
+  color: #ffffff;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
+  transition: transform var(--transition-normal);
+}
+
+.game-card:hover .card-art-icon {
+  transform: scale(1.1) rotate(4deg);
+}
+
+.card-selected-pill {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(4px);
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  box-shadow: var(--shadow-sm);
+  z-index: 2;
+}
+
+.card-check-svg {
+  color: var(--color-success);
+}
+
+/* Card Body */
+.card-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.game-title {
+  margin: 0 0 0.85rem 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.card-title-link {
+  color: var(--color-text-title);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.card-title-link:hover {
+  color: var(--color-primary);
+}
+
+.card-actions-inline {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.card-actions-inline .app-button {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.825rem;
+}
+
+.game-desc {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+  margin: 0 0 1rem 0;
+  padding: 0.75rem;
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-primary);
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.game-specs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: auto;
+  margin-bottom: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--color-border);
+}
+
+.spec-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-surface-subtle);
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-sm);
+}
+
+.spec-icon-svg {
+  color: var(--color-text-muted);
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.game-price-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.price-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+  letter-spacing: 0.05em;
+}
+
+.game-price {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-text-title);
+  line-height: 1.1;
+}
+
+.details-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: none;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-subtle);
+  transition: all var(--transition-fast);
+}
+
+.details-link:hover {
+  background: var(--color-primary-light);
+}
+
+.link-arrow {
+  transition: transform var(--transition-fast);
+}
+
+.details-link:hover .link-arrow {
+  transform: translateX(3px);
+}
+
+/* Floating Order CTA Bar */
+.floating-order-cta {
+  margin-top: 2rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius-xl);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  box-shadow: var(--shadow-md);
+}
+
+.cta-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cta-icon-wrapper {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-lg);
+  background: #ffffff;
+  border: 1px solid #bfdbfe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.cta-text-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.cta-title {
+  font-size: 1rem;
+  color: var(--color-text-title);
+}
+
+.cta-title strong {
+  color: var(--color-primary);
+}
+
+.cta-sub {
+  font-size: 0.825rem;
+  color: var(--color-text-muted);
+}
+
+.cta-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+}
+

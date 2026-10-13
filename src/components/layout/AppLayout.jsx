@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Outlet } from 'react-router'
 import SiteHeader from './SiteHeader.jsx'
+import AuthProvider from '../../providers/AuthProvider.jsx'
+import FavoritesProvider from '../../providers/FavoritesProvider.jsx'
 import BoardGameSelectionProvider from '../../providers/BoardGameSelectionProvider.jsx'
 import OrdersProvider from '../../providers/OrdersProvider.jsx'
 import CartProvider from '../../providers/CartProvider.jsx'
@@ -26,22 +28,24 @@ export default function AppLayout({ items }) {
   }
 
   return (
-    <CartProvider>
-      <div className="app-layout">
-        <a className="skip-link" href="#main-content">Перейти до вмісту</a>
-        <SiteHeader title="Dice & Deck" links={navigationLinks} />
-        
-        <main id="main-content" tabIndex={-1} className="main-container">
-          <div className="main-container-inner">
-            <BoardGameSelectionProvider items={items}>
-              <OrdersProvider>
-                <Outlet />
-              </OrdersProvider>
-            </BoardGameSelectionProvider>
-          </div>
-        </main>
+    <AuthProvider>
+      <FavoritesProvider>
+        <CartProvider>
+          <div className="app-layout">
+            <a className="skip-link" href="#main-content">Перейти до вмісту</a>
+            <SiteHeader title="Dice & Deck" links={navigationLinks} />
 
-        <CartDrawer />
+            <main id="main-content" tabIndex={-1} className="main-container">
+              <div className="main-container-inner">
+                <BoardGameSelectionProvider items={items}>
+                  <OrdersProvider>
+                    <Outlet />
+                  </OrdersProvider>
+                </BoardGameSelectionProvider>
+              </div>
+            </main>
+
+            <CartDrawer />
 
         {/* Clean Modern 3-Column Footer without app store downloads */}
         <footer className="lab-site-footer">
@@ -114,7 +118,9 @@ export default function AppLayout({ items }) {
             </div>
           </div>
         </footer>
-      </div>
-    </CartProvider>
+          </div>
+        </CartProvider>
+      </FavoritesProvider>
+    </AuthProvider>
   )
 }

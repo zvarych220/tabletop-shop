@@ -10,18 +10,29 @@ import {
   HomeIcon,
   PackageIcon,
   TruckIcon,
+  HeartIcon,
+  UserIcon,
+  LogOutIcon,
+  ChevronDownIcon,
 } from '../ui/Icons.jsx'
 import useCart from '../../hooks/useCart.js'
+import useAuth from '../../hooks/useAuth.js'
+import useFavorites from '../../hooks/useFavorites.js'
 
 export default function SiteHeader({ title, links }) {
   const { cartCount, openCart } = useCart()
+  const { user, isAuthenticated, logout } = useAuth()
+  const { favoritesCount } = useFavorites()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const location = useLocation()
 
-  // Auto-close mobile drawer on route change
+  // Auto-close mobile drawer and user menu on route change
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileMenuOpen(false)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUserMenuOpen(false)
   }, [location.pathname])
 
   // Prevent body scroll when mobile menu is open
@@ -56,6 +67,62 @@ export default function SiteHeader({ title, links }) {
 
         {/* Header Right Actions */}
         <div className="header-actions">
+          <div className="header-auth-section">
+            <Link to="/favorites" className="header-favorites-btn">
+              <HeartIcon size={18} />
+              <span>Обране</span>
+              {favoritesCount > 0 && (
+                <span className="favorites-badge-count">{favoritesCount}</span>
+              )}
+            </Link>
+
+            {isAuthenticated ? (
+              <div className="header-user-menu">
+                <button
+                  type="button"
+                  className="header-user-trigger"
+                  onClick={() => setUserMenuOpen((prev) => !prev)}
+                  aria-label="Меню користувача"
+                  aria-expanded={userMenuOpen}
+                >
+                  <img
+                    src={user?.avatar || 'https://i.pravatar.cc/150?img=12'}
+                    alt={user?.name}
+                    className="user-avatar-circle"
+                  />
+                  <span className="user-name-text">{user?.name}</span>
+                  <ChevronDownIcon size={14} />
+                </button>
+
+                {userMenuOpen && (
+                  <div className="user-dropdown-menu">
+                    <Link to="/profile" className="user-dropdown-item">
+                      <UserIcon size={16} />
+                      Мій профіль
+                    </Link>
+                    <div className="user-dropdown-divider" />
+                    <button
+                      type="button"
+                      className="user-dropdown-item"
+                      onClick={async () => {
+                        await logout()
+                        setUserMenuOpen(false)
+                      }}
+                    >
+                      <LogOutIcon size={16} />
+                      Вийти
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link to="/login" className="header-login-btn">
+                <UserIcon size={16} />
+                Увійти
+              </Link>
+            )}
+          </div>
+
           <button
             type="button"
             className="header-cart-btn"
@@ -156,6 +223,91 @@ export default function SiteHeader({ title, links }) {
                       </li>
                     )
                   })}
+                </ul>
+              </div>
+
+              <div className="mobile-menu-nav-wrap">
+                <span className="mobile-menu-section-label">Акаунт</span>
+                <ul className="mobile-menu-list">
+                  <li>
+                    <NavLink
+                      to="/favorites"
+                      className={({ isActive }) =>
+                        isActive ? 'mobile-menu-link active' : 'mobile-menu-link'
+                      }
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <span className="mobile-link-icon-box">
+                        <HeartIcon size={20} />
+                      </span>
+                      <div className="mobile-link-text-group">
+                        <span className="mobile-link-title">Обране</span>
+                        <span className="mobile-link-subtitle">Список бажань ({favoritesCount})</span>
+                      </div>
+                      <span className="mobile-menu-link-arrow">›</span>
+                    </NavLink>
+                  </li>
+                  {isAuthenticated ? (
+                    <>
+                      <li>
+                        <NavLink
+                          to="/profile"
+                          className={({ isActive }) =>
+                            isActive ? 'mobile-menu-link active' : 'mobile-menu-link'
+                          }
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <span className="mobile-link-icon-box">
+                            <UserIcon size={20} />
+                          </span>
+                          <div className="mobile-link-text-group">
+                            <span className="mobile-link-title">Мій профіль</span>
+                            <span className="mobile-link-subtitle">{user?.name}</span>
+                          </div>
+                          <span className="mobile-menu-link-arrow">›</span>
+                        </NavLink>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          className="mobile-menu-link"
+                          onClick={async () => {
+                            await logout()
+                            setMobileMenuOpen(false)
+                          }}
+                          style={{ width: '100%', textAlign: 'left' }}
+                        >
+                          <span className="mobile-link-icon-box">
+                            <LogOutIcon size={20} />
+                          </span>
+                          <div className="mobile-link-text-group">
+                            <span className="mobile-link-title">Вийти</span>
+                            <span className="mobile-link-subtitle">Завершити сесію</span>
+                          </div>
+                          <span className="mobile-menu-link-arrow">›</span>
+                        </button>
+                      </li>
+                    </>
+                  ) : (
+                    <li>
+                      <NavLink
+                        to="/login"
+                        className={({ isActive }) =>
+                          isActive ? 'mobile-menu-link active' : 'mobile-menu-link'
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <span className="mobile-link-icon-box">
+                          <UserIcon size={20} />
+                        </span>
+                        <div className="mobile-link-text-group">
+                          <span className="mobile-link-title">Увійти</span>
+                          <span className="mobile-link-subtitle">Вхід до акаунту</span>
+                        </div>
+                        <span className="mobile-menu-link-arrow">›</span>
+                      </NavLink>
+                    </li>
+                  )}
                 </ul>
               </div>
 

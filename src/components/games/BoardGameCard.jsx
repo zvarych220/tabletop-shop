@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import useCart from '../../hooks/useCart.js'
+import useFavorites from '../../hooks/useFavorites.js'
 
 /**
  * Unified product card used in the catalog and on the home page.
@@ -14,8 +15,10 @@ import useCart from '../../hooks/useCart.js'
  */
 export default function BoardGameCard({ game, selected, onSelect, showQty = false }) {
   const { addToCart } = useCart()
-  const [isWishlisted, setIsWishlisted] = useState(false)
+  const { isFavorite, toggleFavorite } = useFavorites()
   const [qty, setQty] = useState(1)
+
+  const isWishlisted = isFavorite(game.id)
 
   function decrement() {
     setQty((prev) => (prev > 1 ? prev - 1 : 1))
@@ -37,7 +40,7 @@ export default function BoardGameCard({ game, selected, onSelect, showQty = fals
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
-            setIsWishlisted((prev) => !prev)
+            toggleFavorite(game.id)
           }}
           aria-label={isWishlisted ? 'Видалити з обраного' : 'Додати в обране'}
         >

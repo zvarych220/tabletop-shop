@@ -1,0 +1,32 @@
+export const users = [
+  {
+    id: 'user-001',
+    email: 'taras.shevchenko@example.com',
+    password: 'password123',
+    name: 'Тарас Шевченко',
+    phone: '+380501234567',
+    address: 'м. Київ, вул. Хрещатик, 1',
+    avatar: 'https://i.pravatar.cc/150?img=12',
+    createdAt: '2025-01-15T10:30:00Z',
+  },
+  {
+    id: 'user-002',
+    email: 'lesya.ukrainka@example.com',
+    password: 'password456',
+    name: 'Леся Українка',
+    phone: '+380672345678',
+    address: 'м. Львів, пл. Ринок, 10',
+    avatar: 'https://i.pravatar.cc/150?img=47',
+    createdAt: '2025-03-20T14:15:00Z',
+  },
+  {
+    id: 'user-003',
+    email: 'ivan.franko@example.com',
+    password: 'password789',
+    name: 'Іван Франко',
+    phone: '+380933456789',
+    address: 'м. Львів, вул. Коперніка, 5',
+    avatar: 'https://i.pravatar.cc/150?img=33',
+    createdAt: '2024-11-05T09:45:00Z',
+  },
+]

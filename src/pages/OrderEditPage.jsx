@@ -46,6 +46,12 @@ export default function OrderEditPage({ items }) {
       title={`Редагування заявки #${order.id}`}
       game={game}
       initialDraft={{
+        fullName: order.fullName || '',
+        phone: order.phone || '',
+        deliveryService: order.deliveryService || 'nova_poshta',
+        city: order.city || '',
+        branch: order.branch || '',
+        paymentMethod: order.paymentMethod || 'cash_on_delivery',
         comment: order.comment || '',
         durationHours: order.durationHours ?? 2,
         needsConsultation: order.needsConsultation ?? true,

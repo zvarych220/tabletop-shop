@@ -1,0 +1,436 @@
+/* ==========================================================================
+   Game Details Page
+   ========================================================================== */
+
+.game-details-page {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Breadcrumbs */
+.breadcrumbs-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  color: var(--color-text-muted);
+}
+
+.breadcrumb-link {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.breadcrumb-link:hover {
+  color: var(--color-primary);
+}
+
+.breadcrumb-separator {
+  color: var(--color-text-subtle);
+}
+
+.breadcrumb-current {
+  color: var(--color-text-title);
+  font-weight: 600;
+}
+
+/* Details Card */
+.details-card {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.details-card-hero {
+  padding: 2.25rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+}
+
+.details-art-badge {
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-md);
+  color: #ffffff;
+}
+
+.details-art-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.details-heading-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.details-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.details-content-body {
+  padding: 2.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.section-subheading {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-title);
+  margin: 0 0 0.5rem 0;
+}
+
+.details-description {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--color-text-main);
+  margin: 0;
+}
+
+.details-grid-specs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.spec-card {
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.spec-card-icon-wrap {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.spec-card-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.spec-card-label {
+  font-size: 0.775rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.spec-card-value {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text-title);
+}
+
+.price-highlight {
+  color: var(--color-primary);
+  font-size: 1.35rem;
+}
+
+/* Perks */
+.details-perks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #fafafa;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.perk-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.85rem;
+  color: var(--color-text-main);
+}
+
+.perk-svg {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.details-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ==========================================================================
+   Orders Section & Orders Layout
+   ========================================================================== */
+
+.orders-section-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.orders-header-bar {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.orders-subnav {
+  display: inline-flex;
+  background: var(--color-surface-subtle);
+  padding: 0.35rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  gap: 0.35rem;
+}
+
+.subnav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.subnav-link:hover {
+  color: var(--color-text-title);
+}
+
+.subnav-link.active {
+  background: #ffffff;
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+  font-weight: 700;
+}
+
+.subnav-icon-svg {
+  color: currentColor;
+}
+
+/* Orders Page */
+.orders-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.orders-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.orders-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.orders-stat-card {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.orders-stat-icon-wrap {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-light);
+  border: 1px solid rgba(37, 99, 235, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+}
+
+.orders-stat-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.orders-stat-value {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text-title);
+}
+
+/* Orders Table */
+.table-scroll-wrapper {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.requests-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+}
+
+.requests-table th {
+  background: var(--color-surface-subtle);
+  padding: 0.9rem 1.25rem;
+  font-family: var(--font-body);
+  font-size: 0.775rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.requests-table td {
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.925rem;
+  vertical-align: middle;
+}
+
+.requests-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.requests-table tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
+.requests-table tbody tr:hover {
+  background-color: #fafbfc;
+}
+
+.order-id-badge {
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.order-game-title {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--color-text-title);
+}
+
+.order-game-category {
+  display: block;
+  font-size: 0.775rem;
+  color: var(--color-text-muted);
+  margin-top: 0.2rem;
+}
+
+.comment-text {
+  color: var(--color-text-main);
+  max-width: 22rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.consult-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.consult-needed {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.consult-badge-svg {
+  color: #1d4ed8;
+}
+
+.consult-none {
+  background: var(--color-surface-subtle);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.edit-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--color-primary);
+  text-decoration: none;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-subtle);
+  transition: all var(--transition-fast);
+}
+
+.edit-link:hover {
+  background: var(--color-primary-light);
+  transform: translateX(2px);
+}
+

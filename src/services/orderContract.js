@@ -47,8 +47,11 @@ export function toOrder(value) {
     comment: typeof value.comment === 'string' ? value.comment : '',
     orderedItems,
     totalPrice,
-    durationHours: 1,
-    needsConsultation: false,
+    durationHours: typeof value.durationHours === 'number' ? value.durationHours : 1,
+    needsConsultation: Boolean(value.needsConsultation),
+    userId: value.userId || null,
+    status: value.status || 'pending',
+    createdAt: value.createdAt || new Date().toISOString(),
   }
 }
 

@@ -1,16 +1,14 @@
 import { useEffect, useRef } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import PageHeading from '../components/ui/PageHeading.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
-import useBoardGameSelection from '../hooks/useBoardGameSelection.js'
+import useCart from '../hooks/useCart.js'
 import useOrders from '../hooks/useOrders.js'
 import OrderPage from './OrderPage.jsx'
-import NotFoundPage from './NotFoundPage.jsx'
 
-export default function OrderCreatePage({ items }) {
-  const [searchParams] = useSearchParams()
+export default function OrderCreatePage() {
   const navigate = useNavigate()
-  const { selectedId, clearSelection } = useBoardGameSelection()
+  const { cartItems, clearCart } = useCart()
   const { createOrder } = useOrders()
   const pageAlive = useRef(false)
 
@@ -21,14 +19,12 @@ export default function OrderCreatePage({ items }) {
     }
   }, [])
 
-  const gameId = searchParams.get('gameId') || selectedId
-
-  if (!gameId) {
+  if (cartItems.length === 0) {
     return (
       <div className="order-create-empty">
-        <PageHeading title="Створення заявки" />
-        <EmptyState title="Гру не обрано">
-          <p>Щоб оформити заявку, оберіть настільну гру в каталозі:</p>
+        <PageHeading title="Оформлення замовлення" />
+        <EmptyState title="Кошик порожній">
+          <p>Додайте товари до кошика, щоб оформити замовлення:</p>
           <div className="action-links">
             <Link to="/games" className="app-button app-button-primary">
               <span>До каталогу ігор</span>
@@ -40,37 +36,42 @@ export default function OrderCreatePage({ items }) {
     )
   }
 
-  const singleGame = items.find((entry) => entry.id === gameId)
-  if (!singleGame) {
-    return (
-      <NotFoundPage
-        title="Гру не знайдено"
-        message={`Гру з ID «${gameId}» не знайдено в каталозі.`}
-      />
-    )
-  }
+  const totalPrice = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
   async function handleSave(input) {
-    const result = await createOrder(input)
+    const orderData = {
+      ...input,
+      orderedItems: cartItems.map(item => ({
+        gameId: item.gameId,
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+      totalPrice,
+      gameId: cartItems[0].gameId,
+    }
+
+    const result = await createOrder(orderData)
     if (result.ok && pageAlive.current) {
+      clearCart()
       navigate(`/orders/${encodeURIComponent(result.record.id)}`, { replace: true })
     }
     return result
   }
 
   function handleCancel() {
-    clearSelection()
     navigate('/games', { replace: true })
   }
 
   return (
     <OrderPage
-      key={`new-${gameId}`}
-      title="Створення заявки"
-      game={singleGame}
+      key="new-from-cart"
+      title="Оформлення замовлення"
+      cartItems={cartItems}
+      totalPrice={totalPrice}
       onSave={handleSave}
       onCancel={handleCancel}
-      submitLabel="Створити заявку"
+      submitLabel="Оформити замовлення"
       cancelLabel="Скасувати"
     />
   )

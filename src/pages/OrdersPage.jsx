@@ -8,15 +8,19 @@ import OrderTable from '../components/orders/OrderTable.jsx'
 import useOrders from '../hooks/useOrders.js'
 import useOrderFilters from '../hooks/useOrderFilters.js'
 import useDeleteOrder from '../hooks/useDeleteOrder.js'
+import useAuth from '../hooks/useAuth.js'
 import { PackageIcon } from '../components/ui/Icons.jsx'
 
 export default function OrdersPage({ items }) {
+  const { user } = useAuth()
   const { orders, reload, isMutating } = useOrders()
-  const filters = useOrderFilters(orders, items)
+  const userOrders = user ? orders.filter(o => o.userId === user.id) : []
+  const filters = useOrderFilters(userOrders, items)
   const deleteWithConfirmation = useDeleteOrder(items)
   const [error, setError] = useState('')
 
-  const consultationCount = orders.filter((o) => o.needsConsultation).length
+  const pendingCount = userOrders.filter((o) => o.status === 'pending').length
+  const consultationCount = userOrders.filter((o) => o.needsConsultation).length
 
   async function handleDelete(order) {
     setError('')
@@ -50,7 +54,14 @@ export default function OrdersPage({ items }) {
           </span>
           <div>
             <span className="orders-stat-label">Усього заявок</span>
-            <strong className="orders-stat-value">{orders.length}</strong>
+            <strong className="orders-stat-value">{userOrders.length}</strong>
+          </div>
+        </div>
+
+        <div className="orders-stat-card">
+          <div>
+            <span className="orders-stat-label">В обробці</span>
+            <strong className="orders-stat-value">{pendingCount}</strong>
           </div>
         </div>
 
@@ -74,7 +85,7 @@ export default function OrdersPage({ items }) {
 
       <div className="orders-count-row">
         <p className="items-count-badge">
-          Показано: <strong>{filters.visibleOrders.length}</strong> із {orders.length}
+          Показано: <strong>{filters.visibleOrders.length}</strong> із {userOrders.length}
         </p>
       </div>
 
