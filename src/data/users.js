@@ -6,7 +6,7 @@ export const users = [
     name: 'Тарас Шевченко',
     phone: '+380501234567',
     address: 'м. Київ, вул. Хрещатик, 1',
-    avatar: 'https://i.pravatar.cc/150?img=12',
+    role: 'user',
     createdAt: '2025-01-15T10:30:00Z',
   },
   {
@@ -16,7 +16,7 @@ export const users = [
     name: 'Леся Українка',
     phone: '+380672345678',
     address: 'м. Львів, пл. Ринок, 10',
-    avatar: 'https://i.pravatar.cc/150?img=47',
+    role: 'user',
     createdAt: '2025-03-20T14:15:00Z',
   },
   {
@@ -26,7 +26,18 @@ export const users = [
     name: 'Іван Франко',
     phone: '+380933456789',
     address: 'м. Львів, вул. Коперніка, 5',
-    avatar: 'https://i.pravatar.cc/150?img=33',
+    role: 'manager',
     createdAt: '2024-11-05T09:45:00Z',
+  },
+]
+
+export const admins = [
+  {
+    id: 'admin-001',
+    email: 'admin@tabletop.com',
+    password: 'admin123',
+    name: 'Адміністратор',
+    role: 'admin',
+    createdAt: '2024-01-01T00:00:00Z',
   },
 ]

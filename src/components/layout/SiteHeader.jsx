@@ -85,11 +85,7 @@ export default function SiteHeader({ title, links }) {
                   aria-label="Меню користувача"
                   aria-expanded={userMenuOpen}
                 >
-                  <img
-                    src={user?.avatar || 'https://i.pravatar.cc/150?img=12'}
-                    alt={user?.name}
-                    className="user-avatar-circle"
-                  />
+                  <UserIcon size={18} />
                   <span className="user-name-text">{user?.name}</span>
                   <ChevronDownIcon size={14} />
                 </button>

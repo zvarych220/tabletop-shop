@@ -77,11 +77,6 @@ export default function ProfilePage() {
   return (
     <div className="profile-page-container">
       <div className="profile-header">
-        <img
-          src={user.avatar || 'https://i.pravatar.cc/150?img=12'}
-          alt={user.name}
-          className="profile-avatar-large"
-        />
         <div className="profile-header-info">
           <h1 className="profile-name">{user.name}</h1>
           <p className="profile-email">{user.email}</p>

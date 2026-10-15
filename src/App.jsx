@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router'
 import AppLayout from './components/layout/AppLayout.jsx'
 import OrdersLayout from './components/layout/OrdersLayout.jsx'
+import AdminLayout from './components/layout/AdminLayout.jsx'
 import HomePage from './pages/HomePage.jsx'
 import CatalogContainer from './pages/CatalogContainer.jsx'
 import BoardGameDetailsPage from './pages/BoardGameDetailsPage.jsx'
@@ -12,12 +13,30 @@ import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
 import FavoritesPage from './pages/FavoritesPage.jsx'
+import AdminLoginPage from './pages/admin/AdminLoginPage.jsx'
+import AdminProductsPage from './pages/admin/AdminProductsPage.jsx'
+import AdminOrdersPage from './pages/admin/AdminOrdersPage.jsx'
+import AdminUsersPage from './pages/admin/AdminUsersPage.jsx'
+import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 import { boardGames } from './data/boardGames.js'
 
 export default function App() {
   return (
     <Routes>
+      {/* Адмін логін */}
+      <Route path="adminLogin" element={<AdminLoginPage />} />
+
+      {/* Адмін панель */}
+      <Route path="admin" element={<AdminLayout />}>
+        <Route index element={<AdminProductsPage />} />
+        <Route path="products" element={<AdminProductsPage />} />
+        <Route path="orders" element={<AdminOrdersPage />} />
+        <Route path="users" element={<AdminUsersPage />} />
+        <Route path="analytics" element={<AdminAnalyticsPage />} />
+      </Route>
+
+      {/* Основний сайт */}
       <Route element={<AppLayout items={boardGames} />}>
         {/* Головна сторінка */}
         <Route index element={<HomePage />} />

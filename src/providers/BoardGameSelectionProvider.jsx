@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { BoardGameSelectionContext } from '../context/BoardGameSelectionContext.js'
+import { boardGames } from '../data/boardGames.js'
 
-export default function BoardGameSelectionProvider({ items, children }) {
+export default function BoardGameSelectionProvider({ items = boardGames, children }) {
   const [selectedId, setSelectedId] = useState(null)
   const selectedGame = items.find((item) => item.id === selectedId)
 
