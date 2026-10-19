@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import NotFoundPage from './NotFoundPage.jsx'
 import useCart from '../hooks/useCart.js'
 import useFavorites from '../hooks/useFavorites.js'
+import { useProducts } from '../hooks/useProducts.js'
 import BoardGameCard from '../components/games/BoardGameCard.jsx'
 import {
   UsersIcon,
@@ -17,12 +18,13 @@ import {
   CashIcon,
 } from '../components/ui/Icons.jsx'
 
-export default function BoardGameDetailsPage({ items }) {
+export default function BoardGameDetailsPage() {
   const { gameId } = useParams()
+  const { products } = useProducts()
   const { addToCart } = useCart()
   const { isFavorite, toggleFavorite } = useFavorites()
 
-  const game = items.find((entry) => entry.id === gameId)
+  const game = products.find((entry) => entry.id === gameId)
 
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState('desc') // 'desc' | 'components' | 'reviews'

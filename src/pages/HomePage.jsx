@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { boardGames } from '../data/boardGames.js'
+import { useProducts } from '../hooks/useProducts.js'
 import BoardGameCard from '../components/games/BoardGameCard.jsx'
 import {
   DiceIcon,
@@ -16,6 +16,8 @@ import {
 
 
 export default function HomePage() {
+  const { products } = useProducts()
+
   return (
     <div className="labubu-styled-home">
       {/* 1. Hero Split Section (Screenshot 1) */}
@@ -187,7 +189,7 @@ export default function HomePage() {
         </div>
 
         <div className="games-grid">
-          {boardGames.map((game) => (
+          {products.map((game) => (
             <BoardGameCard key={game.id} game={game} />
           ))}
         </div>

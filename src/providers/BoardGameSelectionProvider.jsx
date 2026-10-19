@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { BoardGameSelectionContext } from '../context/BoardGameSelectionContext.js'
-import { boardGames } from '../data/boardGames.js'
+import { useProducts } from '../hooks/useProducts.js'
 
-export default function BoardGameSelectionProvider({ items = boardGames, children }) {
+export default function BoardGameSelectionProvider({ children }) {
+  const { products } = useProducts()
   const [selectedId, setSelectedId] = useState(null)
-  const selectedGame = items.find((item) => item.id === selectedId)
+  const selectedGame = products.find((item) => item.id === selectedId)
 
   function selectGame(id) {
-    if (items.some((item) => item.id === id)) {
+    if (products.some((item) => item.id === id)) {
       setSelectedId(id)
     }
   }

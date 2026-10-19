@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { users as initialUsers } from '../../data/users.js'
 import {
   EyeIcon,
@@ -18,12 +18,28 @@ const ROLES = [
 ]
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState(initialUsers)
+  const [users, setUsers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('admin_users')
+      return saved ? JSON.parse(saved) : initialUsers
+    } catch {
+      return initialUsers
+    }
+  })
   const [selectedUser, setSelectedUser] = useState(null)
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
+
+  // Save users to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('admin_users', JSON.stringify(users))
+    } catch (error) {
+      console.error('Failed to save users to localStorage:', error)
+    }
+  }, [users])
 
   function handleRoleChange(userId, newRole) {
     setUsers((prev) =>

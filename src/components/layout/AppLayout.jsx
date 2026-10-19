@@ -15,7 +15,7 @@ const navigationLinks = [
   { to: '/orders', label: 'Замовлення' },
 ]
 
-export default function AppLayout({ items }) {
+export default function AppLayout() {
   const [newsletterEmail, setNewsletterEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
 
@@ -37,7 +37,7 @@ export default function AppLayout({ items }) {
 
             <main id="main-content" tabIndex={-1} className="main-container">
               <div className="main-container-inner">
-                <BoardGameSelectionProvider items={items}>
+                <BoardGameSelectionProvider>
                   <OrdersProvider>
                     <Outlet />
                   </OrdersProvider>

@@ -19,7 +19,6 @@ import AdminOrdersPage from './pages/admin/AdminOrdersPage.jsx'
 import AdminUsersPage from './pages/admin/AdminUsersPage.jsx'
 import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
-import { boardGames } from './data/boardGames.js'
 
 export default function App() {
   return (
@@ -37,22 +36,22 @@ export default function App() {
       </Route>
 
       {/* Основний сайт */}
-      <Route element={<AppLayout items={boardGames} />}>
+      <Route element={<AppLayout />}>
         {/* Головна сторінка */}
         <Route index element={<HomePage />} />
 
         {/* Каталог і деталі гри */}
         <Route path="games">
-          <Route index element={<CatalogContainer items={boardGames} />} />
-          <Route path=":gameId" element={<BoardGameDetailsPage items={boardGames} />} />
+          <Route index element={<CatalogContainer />} />
+          <Route path=":gameId" element={<BoardGameDetailsPage />} />
         </Route>
 
         {/* Вкладені маршрути замовлень */}
         <Route path="orders" element={<OrdersLayout />}>
-          <Route index element={<OrdersPage items={boardGames} />} />
-          <Route path="new" element={<OrderCreatePage items={boardGames} />} />
-          <Route path=":orderId" element={<OrderDetailsPage items={boardGames} />} />
-          <Route path=":orderId/edit" element={<OrderEditPage items={boardGames} />} />
+          <Route index element={<OrdersPage />} />
+          <Route path="new" element={<OrderCreatePage />} />
+          <Route path=":orderId" element={<OrderDetailsPage />} />
+          <Route path=":orderId/edit" element={<OrderEditPage />} />
         </Route>
 
         {/* Аутентифікація */}

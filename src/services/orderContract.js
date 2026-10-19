@@ -2,8 +2,18 @@ import { boardGames } from '../data/boardGames.js'
 import { validateOrder } from '../domain/orderValidation.js'
 import { ServiceError } from './ServiceError.js'
 
+function getProducts() {
+  try {
+    const saved = localStorage.getItem('admin_products')
+    return saved ? JSON.parse(saved) : boardGames
+  } catch {
+    return boardGames
+  }
+}
+
 export function toOrderInput(input) {
-  const result = validateOrder(input, boardGames)
+  const products = getProducts()
+  const result = validateOrder(input, products)
   if (!result.ok) {
     throw new ServiceError('Перевірте поля заявки.', {
       code: 'VALIDATION',

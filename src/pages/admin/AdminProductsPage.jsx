@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { boardGames } from '../../data/boardGames.js'
+import { useProducts } from '../../hooks/useProducts.js'
 import {
   PlusIcon,
   EditIcon,
@@ -14,7 +14,7 @@ import {
 } from '../../components/ui/Icons.jsx'
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState(boardGames)
+  const { products, setProducts } = useProducts()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
 

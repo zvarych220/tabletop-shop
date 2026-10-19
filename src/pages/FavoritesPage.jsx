@@ -1,12 +1,13 @@
 import { Link } from 'react-router'
 import useFavorites from '../hooks/useFavorites.js'
+import { useProducts } from '../hooks/useProducts.js'
 import BoardGameCard from '../components/games/BoardGameCard.jsx'
-import { boardGames } from '../data/boardGames.js'
 
 export default function FavoritesPage() {
+  const { products } = useProducts()
   const { favorites, favoritesCount, clearFavorites } = useFavorites()
 
-  const favoriteGames = boardGames.filter((game) => favorites.includes(game.id))
+  const favoriteGames = products.filter((game) => favorites.includes(game.id))
 
   async function handleClearAll() {
     if (window.confirm('Ви впевнені, що хочете очистити весь список обраного?')) {

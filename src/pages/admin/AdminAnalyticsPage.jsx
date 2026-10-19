@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
-import { orders } from '../../data/orders.js'
-import { boardGames } from '../../data/boardGames.js'
+import { useMemo, useState, useEffect } from 'react'
+import { orders as initialOrders } from '../../data/orders.js'
+import { useProducts } from '../../hooks/useProducts.js'
 import {
   CoinsIcon,
   PackageIcon,
@@ -20,6 +20,24 @@ const STATUS_CONFIG = {
 }
 
 export default function AdminAnalyticsPage() {
+  const { products } = useProducts()
+  const [orders, setOrders] = useState(() => {
+    try {
+      const saved = localStorage.getItem('admin_orders')
+      return saved ? JSON.parse(saved) : initialOrders
+    } catch {
+      return initialOrders
+    }
+  })
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('admin_orders', JSON.stringify(orders))
+    } catch (error) {
+      console.error('Failed to save orders to localStorage:', error)
+    }
+  }, [orders])
+
   const analytics = useMemo(() => {
     const totalRevenue = orders.reduce(
       (sum, order) => sum + (order.totalPrice || 0),
@@ -62,11 +80,11 @@ export default function AdminAnalyticsPage() {
     const averageOrderValue =
       orders.length > 0 ? totalRevenue / orders.length : 0
 
-    const lowStockProducts = boardGames.filter(
+    const lowStockProducts = products.filter(
       (game) => game.stockQuantity > 0 && game.stockQuantity <= 5
     )
 
-    const outOfStockProducts = boardGames.filter(
+    const outOfStockProducts = products.filter(
       (game) => game.stockQuantity === 0
     )
 
@@ -98,7 +116,7 @@ export default function AdminAnalyticsPage() {
       outOfStockProducts,
       monthlyRevenue,
     }
-  }, [])
+  }, [orders, products])
 
   return (
     <div className="admin-page">

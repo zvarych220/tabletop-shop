@@ -9,14 +9,16 @@ import useOrders from '../hooks/useOrders.js'
 import useOrderFilters from '../hooks/useOrderFilters.js'
 import useDeleteOrder from '../hooks/useDeleteOrder.js'
 import useAuth from '../hooks/useAuth.js'
+import { useProducts } from '../hooks/useProducts.js'
 import { PackageIcon } from '../components/ui/Icons.jsx'
 
-export default function OrdersPage({ items }) {
+export default function OrdersPage() {
+  const { products } = useProducts()
   const { user } = useAuth()
   const { orders, reload, isMutating } = useOrders()
   const userOrders = user ? orders.filter(o => o.userId === user.id) : []
-  const filters = useOrderFilters(userOrders, items)
-  const deleteWithConfirmation = useDeleteOrder(items)
+  const filters = useOrderFilters(userOrders, products)
+  const deleteWithConfirmation = useDeleteOrder(products)
   const [error, setError] = useState('')
 
   const pendingCount = userOrders.filter((o) => o.status === 'pending').length

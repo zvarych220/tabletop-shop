@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import AuthProvider from './providers/AuthProvider.jsx'
 import AdminProvider from './providers/AdminProvider.jsx'
+import ProductsProvider from './providers/ProductsProvider.jsx'
 import CartProvider from './providers/CartProvider.jsx'
 import FavoritesProvider from './providers/FavoritesProvider.jsx'
 import OrdersProvider from './providers/OrdersProvider.jsx'
@@ -16,15 +17,17 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <AuthProvider>
         <AdminProvider>
-          <CartProvider>
-            <FavoritesProvider>
-              <OrdersProvider>
-                <BoardGameSelectionProvider>
-                  <App />
-                </BoardGameSelectionProvider>
-              </OrdersProvider>
-            </FavoritesProvider>
-          </CartProvider>
+          <ProductsProvider>
+            <CartProvider>
+              <FavoritesProvider>
+                <OrdersProvider>
+                  <BoardGameSelectionProvider>
+                    <App />
+                  </BoardGameSelectionProvider>
+                </OrdersProvider>
+              </FavoritesProvider>
+            </CartProvider>
+          </ProductsProvider>
         </AdminProvider>
       </AuthProvider>
     </BrowserRouter>

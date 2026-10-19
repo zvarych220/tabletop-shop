@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import useOrders from '../hooks/useOrders.js'
+import { useProducts } from '../hooks/useProducts.js'
 import OrderPage from './OrderPage.jsx'
 import NotFoundPage from './NotFoundPage.jsx'
 
-export default function OrderEditPage({ items }) {
+export default function OrderEditPage() {
   const { orderId } = useParams()
+  const { products } = useProducts()
   const navigate = useNavigate()
   const { orders, updateOrder } = useOrders()
   const pageAlive = useRef(false)
@@ -30,7 +32,7 @@ export default function OrderEditPage({ items }) {
     )
   }
 
-  const game = items.find((g) => g.id === order.gameId)
+  const game = products.find((g) => g.id === order.gameId)
 
   async function handleSave(input) {
     const result = await updateOrder(order.id, input)

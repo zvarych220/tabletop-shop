@@ -4,14 +4,16 @@ import PageHeading from '../components/ui/PageHeading.jsx'
 import AppButton from '../components/ui/AppButton.jsx'
 import useOrders from '../hooks/useOrders.js'
 import useDeleteOrder from '../hooks/useDeleteOrder.js'
+import { useProducts } from '../hooks/useProducts.js'
 import NotFoundPage from './NotFoundPage.jsx'
 import { DiceIcon, ShieldCheckIcon } from '../components/ui/Icons.jsx'
 
-export default function OrderDetailsPage({ items }) {
+export default function OrderDetailsPage() {
   const { orderId } = useParams()
+  const { products } = useProducts()
   const navigate = useNavigate()
   const { orders, isMutating } = useOrders()
-  const deleteWithConfirmation = useDeleteOrder(items)
+  const deleteWithConfirmation = useDeleteOrder(products)
   const [error, setError] = useState('')
   const pageAlive = useRef(false)
 

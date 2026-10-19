@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { orders as initialOrders } from '../../data/orders.js'
 import {
   EyeIcon,
@@ -22,13 +22,29 @@ const STATUS_OPTIONS = [
 ]
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState(initialOrders)
+  const [orders, setOrders] = useState(() => {
+    try {
+      const saved = localStorage.getItem('admin_orders')
+      return saved ? JSON.parse(saved) : initialOrders
+    } catch {
+      return initialOrders
+    }
+  })
   const [selectedOrder, setSelectedOrder] = useState(null)
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortOrder, setSortOrder] = useState('newest')
+
+  // Save orders to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('admin_orders', JSON.stringify(orders))
+    } catch (error) {
+      console.error('Failed to save orders to localStorage:', error)
+    }
+  }, [orders])
 
   function handleStatusChange(orderId, newStatus) {
     setOrders((prev) =>
