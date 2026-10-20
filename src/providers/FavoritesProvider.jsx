@@ -1,20 +1,23 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { FavoritesContext } from '../context/FavoritesContext.js'
-import { mockFavoritesService } from '../services/mockFavoritesService.js'
+import { api } from '../services/api.js'
 import useAuth from '../hooks/useAuth.js'
 
 export default function FavoritesProvider({ children }) {
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
   const [favorites, setFavorites] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  const userId = user?.id || null
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     async function loadFavorites() {
+      if (!isAuthenticated) {
+        setFavorites([])
+        return
+      }
+
       setIsLoading(true)
       try {
-        const data = await mockFavoritesService.getFavorites(userId)
+        const data = await api.favorites.getAll()
         setFavorites(data)
       } catch (error) {
         console.error('Failed to load favorites:', error)
@@ -24,12 +27,16 @@ export default function FavoritesProvider({ children }) {
       }
     }
     loadFavorites()
-  }, [userId])
+  }, [isAuthenticated])
 
   const toggleFavorite = useCallback(
     async (gameId) => {
+      if (!isAuthenticated) {
+        throw new Error('Необхідно увійти для додавання в обране')
+      }
+
       try {
-        const result = await mockFavoritesService.toggleFavorite(userId, gameId)
+        const result = await api.favorites.toggle(gameId)
         if (result.isFavorite) {
           setFavorites((prev) => [...prev, gameId])
         } else {
@@ -41,7 +48,7 @@ export default function FavoritesProvider({ children }) {
         throw error
       }
     },
-    [userId]
+    [isAuthenticated]
   )
 
   const isFavorite = useCallback(
@@ -52,14 +59,18 @@ export default function FavoritesProvider({ children }) {
   )
 
   const clearFavorites = useCallback(async () => {
+    if (!isAuthenticated) {
+      return
+    }
+
     try {
-      await mockFavoritesService.clearFavorites(userId)
+      await api.favorites.clear()
       setFavorites([])
     } catch (error) {
       console.error('Failed to clear favorites:', error)
       throw error
     }
-  }, [userId])
+  }, [isAuthenticated])
 
   const value = useMemo(
     () => ({

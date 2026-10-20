@@ -34,7 +34,7 @@ export default function ProfilePage() {
     return null
   }
 
-  const userOrders = orders.filter((order) => order.userId === user.id)
+  const userOrders = orders.filter((order) => !order.userId || String(order.userId) === String(user.id))
 
   function handleChange(e) {
     const { name, value } = e.target

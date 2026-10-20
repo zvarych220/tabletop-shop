@@ -1,18 +1,22 @@
-import { boardGames } from '../data/boardGames.js'
 import { validateOrder } from '../domain/orderValidation.js'
 import { ServiceError } from './ServiceError.js'
 
-function getProducts() {
+async function getProducts() {
   try {
-    const saved = localStorage.getItem('admin_products')
-    return saved ? JSON.parse(saved) : boardGames
-  } catch {
-    return boardGames
+    // Try to get products from API if available
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/products`)
+    if (response.ok) {
+      return await response.json()
+    }
+  } catch (error) {
+    console.warn('Failed to fetch products for validation:', error)
   }
+  // Return empty array as fallback - validation will be done on backend
+  return []
 }
 
-export function toOrderInput(input) {
-  const products = getProducts()
+export async function toOrderInput(input) {
+  const products = await getProducts()
   const result = validateOrder(input, products)
   if (!result.ok) {
     throw new ServiceError('Перевірте поля заявки.', {

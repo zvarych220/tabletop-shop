@@ -24,7 +24,17 @@ export default function OrderDetailsPage() {
     }
   }, [])
 
-  const order = orders.find((o) => o.id === orderId)
+  const order = orders.find((o) => String(o.id) === String(orderId))
+
+  // Show loading state while orders are being fetched
+  if (!order && isMutating) {
+    return (
+      <div className="order-details-container">
+        <p>Завантаження замовлення...</p>
+      </div>
+    )
+  }
+
   if (!order) {
     return (
       <NotFoundPage
@@ -34,7 +44,10 @@ export default function OrderDetailsPage() {
     )
   }
 
-  const game = items.find((g) => g.id === order.gameId)
+  const primaryGame = products.find((g) => String(g.id) === String(order.gameId))
+  const displayTitle = order.orderedItems?.length
+    ? order.orderedItems.map((item) => item.title).join(', ')
+    : (primaryGame?.title || order.gameId || 'Замовлення')
 
   async function handleDelete() {
     if (isMutating) return
@@ -69,7 +82,7 @@ export default function OrderDetailsPage() {
           <div className="order-details-hero-text">
             <span className="order-details-sub">Клуб настільних ігор Dice & Deck</span>
             <h3 className="order-details-game-title">
-              «{game?.title ?? order.gameId}»
+              «{displayTitle}»
             </h3>
           </div>
         </div>
@@ -79,14 +92,38 @@ export default function OrderDetailsPage() {
             <dt>ID заявки:</dt>
             <dd><code>{order.id}</code></dd>
 
-            <dt>Настільна гра:</dt>
+            <dt>{order.orderedItems?.length > 1 ? 'Ігри у замовленні:' : 'Настільна гра:'}</dt>
             <dd>
-              {game ? (
-                <Link to={`/games/${game.id}`}>«{game.title}»</Link>
+              {order.orderedItems?.length > 0 ? (
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {order.orderedItems.map((item, idx) => {
+                    const matchingProduct = products.find((p) => String(p.id) === String(item.gameId))
+                    return (
+                      <li key={idx} style={{ marginBottom: '0.25rem' }}>
+                        {matchingProduct ? (
+                          <Link to={`/games/${matchingProduct.id}`}>«{item.title}»</Link>
+                        ) : (
+                          <span>«{item.title}»</span>
+                        )}
+                        {item.quantity > 1 && <span> × {item.quantity} шт.</span>}
+                        {item.price > 0 && <span> ({item.price} ₴)</span>}
+                      </li>
+                    )
+                  })}
+                </ul>
+              ) : primaryGame ? (
+                <Link to={`/games/${primaryGame.id}`}>«{primaryGame.title}»</Link>
               ) : (
-                order.gameId
+                order.gameId || 'Не вказано'
               )}
             </dd>
+
+            {order.totalPrice > 0 && (
+              <>
+                <dt>Сума до сплати:</dt>
+                <dd><strong>{order.totalPrice} ₴</strong></dd>
+              </>
+            )}
 
             <dt>Тривалість гри:</dt>
             <dd>{order.durationHours} год.</dd>

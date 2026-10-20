@@ -1,7 +1,19 @@
 import OrderRow from './OrderRow.jsx'
 
 export default function OrderTable({ orders, items, onDelete, isMutating }) {
-  const titles = new Map(items.map((item) => [item.id, item.title]))
+  const titles = new Map((items || []).map((item) => [String(item.id), item.title]))
+
+  function getOrderTitle(order) {
+    if (order.orderedItems && order.orderedItems.length > 0) {
+      return order.orderedItems
+        .map((item) => `${item.title}${item.quantity > 1 ? ` ×${item.quantity}` : ''}`)
+        .join(', ')
+    }
+    if (order.gameId) {
+      return titles.get(String(order.gameId)) || titles.get(order.gameId) || order.gameId
+    }
+    return 'Невідома гра'
+  }
 
   return (
     <div className="table-scroll-wrapper">
@@ -22,7 +34,7 @@ export default function OrderTable({ orders, items, onDelete, isMutating }) {
               <OrderRow
                 key={order.id}
                 order={order}
-                gameTitle={titles.get(order.gameId) ?? 'Невідома гра'}
+                gameTitle={getOrderTitle(order)}
                 onDelete={onDelete}
                 isMutating={isMutating}
               />

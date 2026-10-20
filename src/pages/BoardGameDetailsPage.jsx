@@ -50,7 +50,7 @@ export default function BoardGameDetailsPage() {
   ]
 
   // Related games (exclude current)
-  const relatedGames = items.filter((g) => g.id !== game.id).slice(0, 4)
+  const relatedGames = products.filter((g) => g.id !== game.id).slice(0, 4)
 
   function handleAddToCart() {
     addToCart(game, quantity)

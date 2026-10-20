@@ -18,6 +18,13 @@ export default function OrdersProvider({ children }) {
   const mounted = useRef(false)
 
   const reload = useCallback(async () => {
+    // Only load orders if user is authenticated
+    if (!user) {
+      setOrders([])
+      setStatus('success')
+      return
+    }
+
     if (mutationLock.current) return
     activeRead.current?.abort()
 
@@ -38,7 +45,7 @@ export default function OrdersProvider({ children }) {
       setError(errorMessage(cause))
       setStatus('error')
     }
-  }, [])
+  }, [user])
 
   useEffect(() => {
     mounted.current = true

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { users as initialUsers } from '../../data/users.js'
+import useAdmin from '../../hooks/useAdmin.js'
 import {
   EyeIcon,
   SearchIcon,
@@ -18,37 +18,27 @@ const ROLES = [
 ]
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState(() => {
-    try {
-      const saved = localStorage.getItem('admin_users')
-      return saved ? JSON.parse(saved) : initialUsers
-    } catch {
-      return initialUsers
-    }
-  })
+  const { users, fetchUsers, updateUserRole, isLoading } = useAdmin()
   const [selectedUser, setSelectedUser] = useState(null)
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
 
-  // Save users to localStorage whenever they change
+  // Fetch users on mount
   useEffect(() => {
-    try {
-      localStorage.setItem('admin_users', JSON.stringify(users))
-    } catch (error) {
-      console.error('Failed to save users to localStorage:', error)
-    }
-  }, [users])
+    fetchUsers()
+  }, [fetchUsers])
 
-  function handleRoleChange(userId, newRole) {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === userId ? { ...user, role: newRole } : user
-      )
-    )
-    if (selectedUser?.id === userId) {
-      setSelectedUser((prev) => (prev ? { ...prev, role: newRole } : null))
+  async function handleRoleChange(userId, newRole) {
+    try {
+      await updateUserRole(userId, newRole)
+      if (selectedUser?.id === userId) {
+        setSelectedUser((prev) => (prev ? { ...prev, role: newRole } : null))
+      }
+    } catch (error) {
+      console.error('Failed to update user role:', error)
+      alert('Не вдалося змінити роль користувача')
     }
   }
 

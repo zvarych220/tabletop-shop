@@ -37,7 +37,8 @@ export default function OrderEditPage() {
   async function handleSave(input) {
     const result = await updateOrder(order.id, input)
     if (result.ok && pageAlive.current && activeId.current === order.id) {
-      navigate(`/orders/${encodeURIComponent(result.record.id)}`, { replace: true })
+      const orderId = result.record?.id || result.record?.data?.id || order.id
+      navigate(`/orders/${encodeURIComponent(orderId)}`, { replace: true })
     }
     return result
   }

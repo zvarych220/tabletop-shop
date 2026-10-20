@@ -54,7 +54,12 @@ export default function OrderCreatePage() {
     const result = await createOrder(orderData)
     if (result.ok && pageAlive.current) {
       clearCart()
-      navigate(`/orders/${encodeURIComponent(result.record.id)}`, { replace: true })
+      const newOrderId = result.record?.id || result.record?.data?.id
+      if (newOrderId) {
+        navigate(`/orders/${encodeURIComponent(newOrderId)}`, { replace: true })
+      } else {
+        navigate('/orders', { replace: true })
+      }
     }
     return result
   }

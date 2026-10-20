@@ -1,6 +1,5 @@
-import { useMemo, useState, useEffect } from 'react'
-import { orders as initialOrders } from '../../data/orders.js'
-import { useProducts } from '../../hooks/useProducts.js'
+import { useMemo, useEffect } from 'react'
+import useAdmin from '../../hooks/useAdmin.js'
 import {
   CoinsIcon,
   PackageIcon,
@@ -20,103 +19,51 @@ const STATUS_CONFIG = {
 }
 
 export default function AdminAnalyticsPage() {
-  const { products } = useProducts()
-  const [orders, setOrders] = useState(() => {
-    try {
-      const saved = localStorage.getItem('admin_orders')
-      return saved ? JSON.parse(saved) : initialOrders
-    } catch {
-      return initialOrders
-    }
-  })
+  const { analytics, fetchAnalytics, isLoading } = useAdmin()
 
+  // Fetch analytics on mount
   useEffect(() => {
-    try {
-      localStorage.setItem('admin_orders', JSON.stringify(orders))
-    } catch (error) {
-      console.error('Failed to save orders to localStorage:', error)
+    fetchAnalytics()
+  }, [fetchAnalytics])
+
+  const stats = useMemo(() => {
+    if (!analytics) {
+      return {
+        totalRevenue: 0,
+        completedRevenue: 0,
+        statusDistribution: { pending: 0, processing: 0, completed: 0, cancelled: 0 },
+        topSellingProducts: [],
+        averageOrderValue: 0,
+        lowStockCount: 0,
+        outOfStockCount: 0,
+        totalOrders: 0,
+        completedOrders: 0,
+        completionRate: 0,
+        topProducts: [],
+        maxProductRevenue: 1,
+        lowStockProducts: [],
+        outOfStockProducts: [],
+        monthlyRevenue: {},
+      }
     }
-  }, [orders])
 
-  const analytics = useMemo(() => {
-    const totalRevenue = orders.reduce(
-      (sum, order) => sum + (order.totalPrice || 0),
-      0
-    )
-    const completedOrders = orders.filter((o) => o.status === 'completed')
-    const completedRevenue = completedOrders.reduce(
-      (sum, order) => sum + (order.totalPrice || 0),
-      0
-    )
-
-    const productSales = {}
-    orders.forEach((order) => {
-      order.orderedItems?.forEach((item) => {
-        if (!productSales[item.gameId]) {
-          productSales[item.gameId] = {
-            gameId: item.gameId,
-            title: item.title,
-            quantity: 0,
-            revenue: 0,
-          }
-        }
-        productSales[item.gameId].quantity += item.quantity || 1
-        productSales[item.gameId].revenue +=
-          (item.price || 0) * (item.quantity || 1)
-      })
-    })
-
-    const topProducts = Object.values(productSales)
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 5)
-
-    const maxProductRevenue = topProducts[0]?.revenue || 1
-
-    const statusDistribution = orders.reduce((acc, order) => {
-      acc[order.status] = (acc[order.status] || 0) + 1
-      return acc
-    }, {})
-
-    const averageOrderValue =
-      orders.length > 0 ? totalRevenue / orders.length : 0
-
-    const lowStockProducts = products.filter(
-      (game) => game.stockQuantity > 0 && game.stockQuantity <= 5
-    )
-
-    const outOfStockProducts = products.filter(
-      (game) => game.stockQuantity === 0
-    )
-
-    const monthlyRevenue = orders.reduce((acc, order) => {
-      const month = new Date(order.createdAt).toLocaleDateString('uk-UA', {
-        year: 'numeric',
-        month: 'long',
-      })
-      acc[month] = (acc[month] || 0) + (order.totalPrice || 0)
-      return acc
-    }, {})
-
-    const completionRate =
-      orders.length > 0
-        ? Math.round((completedOrders.length / orders.length) * 100)
-        : 0
+    const totalOrders = Object.values(analytics.statusDistribution).reduce((sum, count) => sum + count, 0)
+    const completedOrders = analytics.statusDistribution.completed || 0
+    const completionRate = totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0
+    const maxProductRevenue = analytics.topSellingProducts[0]?.totalRevenue || 1
 
     return {
-      totalRevenue,
-      completedRevenue,
-      totalOrders: orders.length,
-      completedOrders: completedOrders.length,
+      ...analytics,
+      totalOrders,
+      completedOrders,
       completionRate,
-      topProducts,
+      topProducts: analytics.topSellingProducts || [],
       maxProductRevenue,
-      statusDistribution,
-      averageOrderValue,
-      lowStockProducts,
-      outOfStockProducts,
-      monthlyRevenue,
+      lowStockProducts: analytics.lowStockProducts || [],
+      outOfStockProducts: analytics.outOfStockProducts || [],
+      monthlyRevenue: analytics.monthlyRevenue || {},
     }
-  }, [orders, products])
+  }, [analytics])
 
   return (
     <div className="admin-page">
@@ -145,10 +92,10 @@ export default function AdminAnalyticsPage() {
           <div className="admin-analytics-content">
             <span className="admin-analytics-label">Загальний дохід</span>
             <div className="admin-analytics-value">
-              {analytics.totalRevenue.toLocaleString('uk-UA')} ₴
+              {stats.totalRevenue.toLocaleString('uk-UA')} ₴
             </div>
             <div className="admin-analytics-sublabel success">
-              Доставлені замовлення: {analytics.completedRevenue.toLocaleString('uk-UA')} ₴
+              Доставлені замовлення: {stats.completedRevenue.toLocaleString('uk-UA')} ₴
             </div>
           </div>
         </div>
@@ -159,9 +106,9 @@ export default function AdminAnalyticsPage() {
           </div>
           <div className="admin-analytics-content">
             <span className="admin-analytics-label">Всього замовлень</span>
-            <div className="admin-analytics-value">{analytics.totalOrders}</div>
+            <div className="admin-analytics-value">{stats.totalOrders}</div>
             <div className="admin-analytics-sublabel info">
-              {analytics.completedOrders} завершено ({analytics.completionRate}% успішно)
+              {stats.completedOrders} завершено ({stats.completionRate}% успішно)
             </div>
           </div>
         </div>
@@ -173,7 +120,7 @@ export default function AdminAnalyticsPage() {
           <div className="admin-analytics-content">
             <span className="admin-analytics-label">Середній чек</span>
             <div className="admin-analytics-value">
-              {Math.round(analytics.averageOrderValue).toLocaleString('uk-UA')} ₴
+              {Math.round(stats.averageOrderValue).toLocaleString('uk-UA')} ₴
             </div>
             <div className="admin-analytics-sublabel">
               На одне оформлене замовлення
@@ -188,10 +135,10 @@ export default function AdminAnalyticsPage() {
           <div className="admin-analytics-content">
             <span className="admin-analytics-label">Складські ризики</span>
             <div className="admin-analytics-value">
-              {analytics.lowStockProducts.length + analytics.outOfStockProducts.length}
+              {stats.lowStockCount + stats.outOfStockCount}
             </div>
             <div className="admin-analytics-sublabel danger">
-              {analytics.lowStockProducts.length} закінчуються • {analytics.outOfStockProducts.length} немає
+              {stats.lowStockCount} закінчуються • {stats.outOfStockCount} немає
             </div>
           </div>
         </div>
@@ -212,51 +159,59 @@ export default function AdminAnalyticsPage() {
           </div>
 
           <div className="admin-top-products">
-            {analytics.topProducts.map((product, index) => {
-              const percentage = Math.round(
-                (product.revenue / analytics.maxProductRevenue) * 100
-              )
-              const rankClass =
-                index === 0
-                  ? 'gold'
-                  : index === 1
-                    ? 'silver'
-                    : index === 2
-                      ? 'bronze'
-                      : 'standard'
+            {stats.topProducts.length === 0 ? (
+              <div className="admin-empty-state">
+                <p>Немає даних про продажі</p>
+              </div>
+            ) : (
+              stats.topProducts.map((product, index) => {
+                const revenue = product.totalRevenue ?? product.revenue ?? 0
+                const quantity = product.totalQuantity ?? product.quantity ?? 0
+                const percentage = Math.round(
+                  (revenue / stats.maxProductRevenue) * 100
+                )
+                const rankClass =
+                  index === 0
+                    ? 'gold'
+                    : index === 1
+                      ? 'silver'
+                      : index === 2
+                        ? 'bronze'
+                        : 'standard'
 
-              return (
-                <div key={product.gameId} className="admin-top-product-item">
-                  <div className={`admin-top-product-rank ${rankClass}`}>
-                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                return (
+                  <div key={product.gameId || index} className="admin-top-product-item">
+                    <div className={`admin-top-product-rank ${rankClass}`}>
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                    </div>
+                    <div className="admin-top-product-info">
+                      <div className="admin-top-product-name-row">
+                        <span className="admin-top-product-name">
+                          {product.title}
+                        </span>
+                        <span className="admin-top-product-revenue">
+                          {revenue.toLocaleString('uk-UA')} ₴
+                        </span>
+                      </div>
+
+                      <div className="admin-top-product-stats-row">
+                        <span className="admin-top-product-stats">
+                          Продано: <strong>{quantity} шт</strong>
+                        </span>
+                        <span className="admin-top-product-pct">{percentage}% від лідера</span>
+                      </div>
+
+                      <div className="admin-progress-bar-container">
+                        <div
+                          className="admin-progress-bar-fill"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="admin-top-product-info">
-                    <div className="admin-top-product-name-row">
-                      <span className="admin-top-product-name">
-                        {product.title}
-                      </span>
-                      <span className="admin-top-product-revenue">
-                        {product.revenue.toLocaleString('uk-UA')} ₴
-                      </span>
-                    </div>
-
-                    <div className="admin-top-product-stats-row">
-                      <span className="admin-top-product-stats">
-                        Продано: <strong>{product.quantity} шт</strong>
-                      </span>
-                      <span className="admin-top-product-pct">{percentage}% від лідера</span>
-                    </div>
-
-                    <div className="admin-progress-bar-container">
-                      <div
-                        className="admin-progress-bar-fill"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })
+            )}
           </div>
         </div>
 
@@ -269,18 +224,18 @@ export default function AdminAnalyticsPage() {
               </span>
               <h2 className="admin-section-title">Розподіл замовлень за статусами</h2>
             </div>
-            <span className="admin-chip">{analytics.totalOrders} всього</span>
+            <span className="admin-chip">{stats.totalOrders} всього</span>
           </div>
 
           <div className="admin-status-distribution">
-            {Object.entries(analytics.statusDistribution).map(([status, count]) => {
+            {Object.entries(stats.statusDistribution || {}).map(([status, count]) => {
               const cfg = STATUS_CONFIG[status] || {
                 label: status,
                 color: '#64748b',
                 bg: '#f1f5f9',
               }
-              const pct = analytics.totalOrders
-                ? Math.round((count / analytics.totalOrders) * 100)
+              const pct = stats.totalOrders
+                ? Math.round((count / stats.totalOrders) * 100)
                 : 0
 
               return (
@@ -328,17 +283,30 @@ export default function AdminAnalyticsPage() {
           </div>
 
           <div className="admin-monthly-revenue">
-            {Object.entries(analytics.monthlyRevenue).map(([month, revenue]) => (
-              <div key={month} className="admin-monthly-item">
-                <div className="admin-monthly-meta">
-                  <span className="admin-monthly-label">{month}</span>
-                  <span className="admin-monthly-sub">Замовлень на суму</span>
+            {Object.entries(stats.monthlyRevenue || {}).map(([month, revenue]) => {
+              // Format "2026-10" → "Жовтень 2026"
+              const [year, mm] = month.split('-')
+              const label = new Intl.DateTimeFormat('uk-UA', { month: 'long', year: 'numeric' }).format(
+                new Date(Number(year), Number(mm) - 1, 1)
+              )
+              const capitalLabel = label.charAt(0).toUpperCase() + label.slice(1)
+              return (
+                <div key={month} className="admin-monthly-item">
+                  <div className="admin-monthly-meta">
+                    <span className="admin-monthly-label">{capitalLabel}</span>
+                    <span className="admin-monthly-sub">Замовлень на суму</span>
+                  </div>
+                  <div className="admin-monthly-value">
+                    {revenue.toLocaleString('uk-UA')} ₴
+                  </div>
                 </div>
-                <div className="admin-monthly-value">
-                  {revenue.toLocaleString('uk-UA')} ₴
-                </div>
+              )
+            })}
+            {(!stats.monthlyRevenue || Object.keys(stats.monthlyRevenue).length === 0) && (
+              <div className="admin-empty-state">
+                <p>Дані за поточний період оновлюються</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
@@ -352,12 +320,12 @@ export default function AdminAnalyticsPage() {
               <h2 className="admin-section-title">Потребують поповнення складу</h2>
             </div>
             <span className="admin-badge admin-badge-warning">
-              {analytics.lowStockProducts.length + analytics.outOfStockProducts.length} позицій
+              {(stats.lowStockProducts?.length || 0) + (stats.outOfStockProducts?.length || 0)} позицій
             </span>
           </div>
 
           <div className="admin-low-stock-list">
-            {analytics.outOfStockProducts.map((product) => (
+            {(stats.outOfStockProducts || []).map((product) => (
               <div key={product.id} className="admin-low-stock-item out-of-stock">
                 <div className="admin-low-stock-info">
                   <span className="admin-low-stock-name">{product.title}</span>
@@ -367,7 +335,7 @@ export default function AdminAnalyticsPage() {
               </div>
             ))}
 
-            {analytics.lowStockProducts.map((product) => (
+            {(stats.lowStockProducts || []).map((product) => (
               <div key={product.id} className="admin-low-stock-item">
                 <div className="admin-low-stock-info">
                   <span className="admin-low-stock-name">{product.title}</span>
@@ -381,8 +349,8 @@ export default function AdminAnalyticsPage() {
               </div>
             ))}
 
-            {analytics.lowStockProducts.length === 0 &&
-              analytics.outOfStockProducts.length === 0 && (
+            {(!stats.lowStockProducts || stats.lowStockProducts.length === 0) &&
+              (!stats.outOfStockProducts || stats.outOfStockProducts.length === 0) && (
                 <div className="admin-empty-state">
                   <CheckCircleIcon size={24} style={{ color: '#10b981' }} />
                   <p>Всі товари в достатній кількості на складі!</p>

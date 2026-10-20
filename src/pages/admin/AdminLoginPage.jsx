@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router'
-import useAdmin from '../../hooks/useAdmin.js'
+import useAuth from '../../hooks/useAuth.js'
 import {
   DiceIcon,
   SparklesIcon,
@@ -11,7 +11,7 @@ import {
 
 export default function AdminLoginPage() {
   const navigate = useNavigate()
-  const { login, isLoading, error } = useAdmin()
+  const { login, isLoading } = useAuth()
 
   const [formData, setFormData] = useState({
     email: '',
@@ -89,10 +89,10 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Error Alert */}
-        {(formError || error) && (
+        {formError && (
           <div className="admin-login-error">
             <AlertTriangleIcon size={16} style={{ flexShrink: 0 }} />
-            <span>{formError || error}</span>
+            <span>{formError}</span>
           </div>
         )}
 

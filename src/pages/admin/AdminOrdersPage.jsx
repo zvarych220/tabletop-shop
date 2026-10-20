@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { orders as initialOrders } from '../../data/orders.js'
+import { api } from '../../services/api.js'
 import {
   EyeIcon,
   TrashIcon,
@@ -22,46 +22,64 @@ const STATUS_OPTIONS = [
 ]
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState(() => {
-    try {
-      const saved = localStorage.getItem('admin_orders')
-      return saved ? JSON.parse(saved) : initialOrders
-    } catch {
-      return initialOrders
-    }
-  })
+  const [orders, setOrders] = useState([])
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortOrder, setSortOrder] = useState('newest')
 
-  // Save orders to localStorage whenever they change
+  // Fetch orders on mount
   useEffect(() => {
-    try {
-      localStorage.setItem('admin_orders', JSON.stringify(orders))
-    } catch (error) {
-      console.error('Failed to save orders to localStorage:', error)
-    }
-  }, [orders])
+    fetchOrders()
+  }, [])
 
-  function handleStatusChange(orderId, newStatus) {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order
-      )
-    )
-    if (selectedOrder?.id === orderId) {
-      setSelectedOrder((prev) => (prev ? { ...prev, status: newStatus } : null))
+  async function fetchOrders() {
+    setIsLoading(true)
+    try {
+      const data = await api.orders.getAll()
+      setOrders(data)
+    } catch (error) {
+      console.error('Failed to fetch orders:', error)
+      alert('Не вдалося завантажити замовлення')
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  function handleDelete(orderId) {
-    if (confirm('Ви впевнені, що хочете видалити це замовлення?')) {
-      setOrders((prev) => prev.filter((order) => order.id !== orderId))
+  async function handleStatusChange(orderId, newStatus) {
+    try {
+      const order = orders.find(o => o.id === orderId)
+      if (!order) return
+
+      await api.orders.updateStatus(orderId, newStatus)
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === orderId ? { ...order, status: newStatus } : order
+        )
+      )
       if (selectedOrder?.id === orderId) {
-        setSelectedOrder(null)
+        setSelectedOrder((prev) => (prev ? { ...prev, status: newStatus } : null))
+      }
+    } catch (error) {
+      console.error('Failed to update order status:', error)
+      alert('Не вдалося оновити статус замовлення')
+    }
+  }
+
+  async function handleDelete(orderId) {
+    if (confirm('Ви впевнені, що хочете видалити це замовлення?')) {
+      try {
+        await api.orders.delete(orderId)
+        setOrders((prev) => prev.filter((order) => order.id !== orderId))
+        if (selectedOrder?.id === orderId) {
+          setSelectedOrder(null)
+        }
+      } catch (error) {
+        console.error('Failed to delete order:', error)
+        alert('Не вдалося видалити замовлення')
       }
     }
   }

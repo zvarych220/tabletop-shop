@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Outlet, NavLink, Navigate, Link, useLocation } from 'react-router'
 import useAdmin from '../../hooks/useAdmin.js'
+import useAuth from '../../hooks/useAuth.js'
 import {
   PackageIcon,
   ClipboardListIcon,
@@ -24,8 +25,18 @@ const PAGE_BREADCRUMBS = {
 
 export default function AdminLayout() {
   const { admin, logout } = useAdmin()
+  const { isLoading: authLoading } = useAuth()
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
   const location = useLocation()
+
+  // Wait for auth to finish restoring from localStorage before redirecting
+  if (authLoading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--admin-bg, #0f172a)' }}>
+        <div style={{ color: '#94a3b8', fontSize: '1rem' }}>Завантаження...</div>
+      </div>
+    )
+  }
 
   if (!admin) {
     return <Navigate to="/adminLogin" replace />

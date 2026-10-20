@@ -1,55 +1,86 @@
 import { useState, useCallback } from 'react'
 import { AdminContext } from '../context/AdminContext.js'
-import { admins } from '../data/users.js'
+import { api } from '../services/api.js'
+import useAuth from '../hooks/useAuth.js'
 
 export default function AdminProvider({ children }) {
-  const [admin, setAdmin] = useState(() => {
-    try {
-      const saved = localStorage.getItem('admin')
-      return saved ? JSON.parse(saved) : null
-    } catch {
-      return null
-    }
-  })
+  const { user } = useAuth()
+  const [users, setUsers] = useState([])
+  const [analytics, setAnalytics] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const login = useCallback(async (email, password) => {
+  // Check if current user is admin or manager
+  const isAdmin = user?.role === 'admin'
+  const isManager = user?.role === 'manager' || user?.role === 'admin'
+
+  // Fetch users (admin only)
+  const fetchUsers = useCallback(async (params = {}) => {
+    if (!isAdmin) return
+
     setIsLoading(true)
     setError(null)
-
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      const foundAdmin = admins.find(
-        (a) => a.email === email && a.password === password
-      )
-
-      if (!foundAdmin) {
-        throw new Error('Невірний email або пароль')
-      }
-
-      setAdmin(foundAdmin)
-      localStorage.setItem('admin', JSON.stringify(foundAdmin))
+      const data = await api.admin.getUsers(params)
+      setUsers(data)
+      return data
     } catch (err) {
       setError(err.message)
       throw err
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [isAdmin])
 
-  const logout = useCallback(() => {
-    setAdmin(null)
-    localStorage.removeItem('admin')
-  }, [])
+  // Fetch analytics (admin/manager)
+  const fetchAnalytics = useCallback(async () => {
+    if (!isManager) return
+
+    setIsLoading(true)
+    setError(null)
+    try {
+      const data = await api.admin.getAnalytics()
+      setAnalytics(data)
+      return data
+    } catch (err) {
+      setError(err.message)
+      throw err
+    } finally {
+      setIsLoading(false)
+    }
+  }, [isManager])
+
+  // Update user role (admin only)
+  const updateUserRole = useCallback(async (userId, role) => {
+    if (!isAdmin) {
+      throw new Error('Only administrators can change user roles')
+    }
+
+    setIsLoading(true)
+    setError(null)
+    try {
+      const updatedUser = await api.admin.updateUserRole(userId, role)
+      setUsers(prev => prev.map(u => u.id === userId ? updatedUser : u))
+      return updatedUser
+    } catch (err) {
+      setError(err.message)
+      throw err
+    } finally {
+      setIsLoading(false)
+    }
+  }, [isAdmin])
 
   const value = {
-    admin,
+    admin: user, // Use user from AuthProvider
+    isAdmin,
+    isManager,
+    users,
+    analytics,
     isLoading,
     error,
-    login,
-    logout,
+    fetchUsers,
+    fetchAnalytics,
+    updateUserRole,
   }
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>

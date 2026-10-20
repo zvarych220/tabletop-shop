@@ -16,7 +16,7 @@ export default function OrdersPage() {
   const { products } = useProducts()
   const { user } = useAuth()
   const { orders, reload, isMutating } = useOrders()
-  const userOrders = user ? orders.filter(o => o.userId === user.id) : []
+  const userOrders = user ? orders.filter(o => !o.userId || String(o.userId) === String(user.id)) : []
   const filters = useOrderFilters(userOrders, products)
   const deleteWithConfirmation = useDeleteOrder(products)
   const [error, setError] = useState('')
@@ -112,7 +112,7 @@ export default function OrdersPage() {
       ) : (
         <OrderTable
           orders={filters.visibleOrders}
-          items={items}
+          items={products}
           onDelete={handleDelete}
           isMutating={isMutating}
         />
