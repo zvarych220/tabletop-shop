@@ -18,6 +18,8 @@ import AdminProductsPage from './pages/admin/AdminProductsPage.jsx'
 import AdminOrdersPage from './pages/admin/AdminOrdersPage.jsx'
 import AdminUsersPage from './pages/admin/AdminUsersPage.jsx'
 import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage.jsx'
+import AdminReviewsPage from './pages/admin/AdminReviewsPage.jsx'
+import AdminTelegramPage from './pages/admin/AdminTelegramPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 
 export default function App() {
@@ -31,8 +33,10 @@ export default function App() {
         <Route index element={<AdminProductsPage />} />
         <Route path="products" element={<AdminProductsPage />} />
         <Route path="orders" element={<AdminOrdersPage />} />
+        <Route path="reviews" element={<AdminReviewsPage />} />
         <Route path="users" element={<AdminUsersPage />} />
         <Route path="analytics" element={<AdminAnalyticsPage />} />
+        <Route path="telegram" element={<AdminTelegramPage />} />
       </Route>
 
       {/* Основний сайт */}

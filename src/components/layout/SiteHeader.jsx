@@ -68,8 +68,12 @@ export default function SiteHeader({ title, links }) {
         {/* Header Right Actions */}
         <div className="header-actions">
           <div className="header-auth-section">
-            <Link to="/favorites" className="header-favorites-btn">
-              <HeartIcon size={18} />
+            <Link
+              to="/favorites"
+              className="header-favorites-btn"
+              aria-label={`Обране (${favoritesCount})`}
+            >
+              <HeartIcon size={18} className="header-favorites-icon" />
               <span>Обране</span>
               {favoritesCount > 0 && (
                 <span className="favorites-badge-count">{favoritesCount}</span>

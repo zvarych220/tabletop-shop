@@ -23,56 +23,112 @@ class Product
      */
     public function getAll(array $filters = []): array
     {
-        $sql = 'SELECT * FROM products WHERE 1=1';
+        $whereSql = ' WHERE 1=1';
         $params = [];
 
-        // Search filter
-        if (!empty($filters['search'])) {
-            $sql .= ' AND (title LIKE ? OR category LIKE ? OR description LIKE ?)';
-            $searchTerm = '%' . $filters['search'] . '%';
+        // Search filter (title, category, description)
+        $search = $filters['search'] ?? $filters['q'] ?? null;
+        if (!empty($search)) {
+            $whereSql .= ' AND (title LIKE ? OR category LIKE ? OR description LIKE ?)';
+            $searchTerm = '%' . trim($search) . '%';
             $params[] = $searchTerm;
             $params[] = $searchTerm;
             $params[] = $searchTerm;
         }
 
         // Category filter
-        if (!empty($filters['category'])) {
-            $sql .= ' AND category = ?';
-            $params[] = $filters['category'];
+        $category = $filters['category'] ?? $filters['cat'] ?? null;
+        if (!empty($category) && $category !== 'all') {
+            $whereSql .= ' AND category = ?';
+            $params[] = $category;
         }
 
-        // Stock filter
+        // Price range filters
+        $minPrice = $filters['minPrice'] ?? $filters['minP'] ?? null;
+        if ($minPrice !== null && $minPrice !== '' && is_numeric($minPrice) && (float)$minPrice > 0) {
+            $whereSql .= ' AND price >= ?';
+            $params[] = (float) $minPrice;
+        }
+
+        $maxPrice = $filters['maxPrice'] ?? $filters['maxP'] ?? null;
+        if ($maxPrice !== null && $maxPrice !== '' && is_numeric($maxPrice) && (float)$maxPrice > 0) {
+            $whereSql .= ' AND price <= ?';
+            $params[] = (float) $maxPrice;
+        }
+
+        // Minimum rating filter
+        $minRating = $filters['minRating'] ?? $filters['rating'] ?? null;
+        if ($minRating !== null && $minRating !== '' && is_numeric($minRating) && (float)$minRating > 0) {
+            $whereSql .= ' AND rating >= ?';
+            $params[] = (float) $minRating;
+        }
+
+        // Availability filter
+        $available = $filters['available'] ?? $filters['inStock'] ?? null;
+        if (!empty($available) && ($available === '1' || $available === 1 || $available === true || $available === 'true')) {
+            $whereSql .= ' AND in_stock = 1 AND stock_quantity > 0';
+        }
+
+        // Stock status filter (for admin dashboard / products list)
         if (!empty($filters['stock'])) {
             switch ($filters['stock']) {
                 case 'inStock':
-                    $sql .= ' AND stock_quantity > 5';
+                    $whereSql .= ' AND stock_quantity > 5';
                     break;
                 case 'lowStock':
-                    $sql .= ' AND stock_quantity BETWEEN 1 AND 5';
+                    $whereSql .= ' AND stock_quantity BETWEEN 1 AND 5';
                     break;
                 case 'outOfStock':
-                    $sql .= ' AND stock_quantity = 0';
+                    $whereSql .= ' AND stock_quantity = 0';
                     break;
             }
         }
 
+        // Total count matching filters
+        $countSql = "SELECT COUNT(*) FROM products $whereSql";
+        $countStmt = $this->db->prepare($countSql);
+        $countStmt->execute($params);
+        $total = (int) $countStmt->fetchColumn();
+
         // Sorting
         $sort = $filters['sort'] ?? 'created_at-desc';
+        $orderSql = '';
         switch ($sort) {
             case 'price-asc':
-                $sql .= ' ORDER BY price ASC';
+                $orderSql = ' ORDER BY price ASC';
                 break;
             case 'price-desc':
-                $sql .= ' ORDER BY price DESC';
+                $orderSql = ' ORDER BY price DESC';
                 break;
+            case 'rating':
+            case 'rating-desc':
+                $orderSql = ' ORDER BY rating DESC, rating_count DESC';
+                break;
+            case 'rating-asc':
+                $orderSql = ' ORDER BY rating ASC, rating_count ASC';
+                break;
+            case 'title':
             case 'name-asc':
-                $sql .= ' ORDER BY title ASC';
+                $orderSql = ' ORDER BY title ASC';
                 break;
             case 'stock-desc':
-                $sql .= ' ORDER BY stock_quantity DESC';
+                $orderSql = ' ORDER BY stock_quantity DESC';
                 break;
             default:
-                $sql .= ' ORDER BY created_at DESC';
+                $orderSql = ' ORDER BY created_at DESC';
+        }
+
+        // Pagination calculation
+        $isAll = !empty($filters['all']) || (isset($filters['limit']) && ($filters['limit'] === 'all' || (int)$filters['limit'] === 0));
+
+        $page = max(1, (int)($filters['page'] ?? 1));
+        $limit = $isAll ? max(1, $total) : max(1, min(100, (int)($filters['limit'] ?? 8)));
+        $totalPages = $total > 0 && $limit > 0 ? (int)ceil($total / $limit) : 1;
+        $offset = ($page - 1) * $limit;
+
+        $sql = "SELECT * FROM products $whereSql $orderSql";
+        if (!$isAll && $limit > 0) {
+            $sql .= " LIMIT $limit OFFSET $offset";
         }
 
         $stmt = $this->db->prepare($sql);
@@ -85,7 +141,17 @@ class Product
             $product = $this->formatProduct($product);
         }
 
-        return $products;
+        return [
+            'products' => $products,
+            'pagination' => [
+                'page' => $page,
+                'limit' => $isAll ? $total : $limit,
+                'total' => $total,
+                'totalPages' => $totalPages,
+                'hasNextPage' => $page < $totalPages,
+                'hasPrevPage' => $page > 1,
+            ]
+        ];
     }
 
     /**
@@ -207,19 +273,19 @@ class Product
                 $dbField = $dataField;
             }
 
-            if (isset($data[$dataField])) {
+            if (array_key_exists($dataField, $data)) {
                 $updateFields[] = "$dbField = ?";
                 $params[] = $data[$dataField];
             }
         }
 
         // Recalculate discount
-        if (isset($data['price']) || isset($data['oldPrice'])) {
+        if (array_key_exists('price', $data) || array_key_exists('oldPrice', $data)) {
             $product = $this->findById($id);
-            $price = $data['price'] ?? $product['price'];
-            $oldPrice = $data['oldPrice'] ?? $product['oldPrice'];
+            $price = array_key_exists('price', $data) ? $data['price'] : ($product['price'] ?? 0);
+            $oldPrice = array_key_exists('oldPrice', $data) ? $data['oldPrice'] : ($product['oldPrice'] ?? null);
 
-            if ($oldPrice && $oldPrice > $price) {
+            if (!empty($oldPrice) && $oldPrice > $price) {
                 $discountPercent = round((($oldPrice - $price) / $oldPrice) * 100);
                 $updateFields[] = 'discount = ?';
                 $params[] = "-{$discountPercent}%";
@@ -229,9 +295,9 @@ class Product
         }
 
         // Update in_stock based on stock_quantity
-        if (isset($data['stockQuantity'])) {
+        if (array_key_exists('stockQuantity', $data)) {
             $updateFields[] = 'in_stock = ?';
-            $params[] = $data['stockQuantity'] > 0 ? 1 : 0;
+            $params[] = ($data['stockQuantity'] ?? 0) > 0 ? 1 : 0;
         }
 
         if (!empty($updateFields)) {
@@ -294,9 +360,22 @@ class Product
             VALUES (?, ?, ?, ?)
         ');
 
+        $hasPrimary = false;
+        foreach ($images as $img) {
+            if (is_array($img) && !empty($img['isPrimary'])) {
+                $hasPrimary = true;
+                break;
+            }
+        }
+
         foreach ($images as $index => $image) {
             $imageId = 'img-' . bin2hex(random_bytes(8));
-            $isPrimary = ($index === 0 || ($image['isPrimary'] ?? false)) ? 1 : 0;
+            $isPrimary = 0;
+            if ($hasPrimary) {
+                $isPrimary = (is_array($image) && !empty($image['isPrimary'])) ? 1 : 0;
+            } else {
+                $isPrimary = ($index === 0) ? 1 : 0;
+            }
             $url = is_array($image) ? $image['url'] : $image;
 
             $stmt->execute([$imageId, $productId, $url, $isPrimary]);

@@ -12,8 +12,8 @@ export default function ProductsProvider({ children }) {
     const fetchProducts = async () => {
       try {
         setIsLoading(true)
-        const data = await api.products.getAll()
-        setProducts(data)
+        const data = await api.products.getAll({ all: 1 })
+        setProducts(Array.isArray(data) ? data : (data.data || []))
       } catch (err) {
         console.error('Failed to fetch products:', err)
         setError(err.message)
@@ -27,8 +27,8 @@ export default function ProductsProvider({ children }) {
 
   const refreshProducts = async () => {
     try {
-      const data = await api.products.getAll()
-      setProducts(data)
+      const data = await api.products.getAll({ all: 1 })
+      setProducts(Array.isArray(data) ? data : (data.data || []))
     } catch (err) {
       console.error('Failed to refresh products:', err)
       throw err
@@ -38,7 +38,7 @@ export default function ProductsProvider({ children }) {
   const createProduct = async (productData) => {
     try {
       const newProduct = await api.products.create(productData)
-      setProducts(prev => [...prev, newProduct])
+      setProducts(prev => [newProduct, ...prev])
       return newProduct
     } catch (err) {
       console.error('Failed to create product:', err)

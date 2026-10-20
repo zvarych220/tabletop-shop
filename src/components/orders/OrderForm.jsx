@@ -130,6 +130,61 @@ export default function OrderForm({
                 />
               </FormField>
             </div>
+
+            <div style={{ marginTop: '1rem' }}>
+              <FormField
+                id={`${idPrefix}-telegramChatId`}
+                label="Telegram Chat ID (для сповіщень)"
+              >
+                <input
+                  id={`${idPrefix}-telegramChatId`}
+                  name="telegramChatId"
+                  type="text"
+                  value={draft.telegramChatId || ''}
+                  onChange={(e) => onChange('telegramChatId', e.target.value)}
+                  className="form-input"
+                  placeholder="Наприклад: 123456789"
+                />
+                <div style={{
+                  marginTop: '0.6rem',
+                  padding: '0.7rem 0.9rem',
+                  background: '#f0f9ff',
+                  border: '1px solid #bae6fd',
+                  borderRadius: '8px',
+                  fontSize: '0.8rem',
+                  color: '#0369a1',
+                  lineHeight: 1.55,
+                }}>
+                  📱 Щоб отримувати сповіщення про замовлення у Telegram:
+                  <div style={{ marginTop: '0.3rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                    <span>
+                      1.{' '}
+                      <a
+                        href="https://t.me/DiceDeck_bot"
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ color: '#0284c7', fontWeight: 600, textDecoration: 'none' }}
+                      >
+                        Підпишіться на нашого бота @DiceDeck_bot
+                      </a>
+                      {' '}та натисніть <strong>/start</strong>
+                    </span>
+                    <span>
+                      2. Дізнайтеся свій Chat ID у{' '}
+                      <a
+                        href="https://t.me/userinfobot"
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ color: '#0284c7', fontWeight: 600, textDecoration: 'none' }}
+                      >
+                        @userinfobot
+                      </a>
+                      {' '}та вставте число вище
+                    </span>
+                  </div>
+                </div>
+              </FormField>
+            </div>
           </div>
         </section>
 

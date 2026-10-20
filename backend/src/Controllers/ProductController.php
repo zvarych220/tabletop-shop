@@ -29,16 +29,9 @@ class ProductController
     public function getAll(array $query = []): void
     {
         try {
-            $filters = [
-                'search' => $query['search'] ?? null,
-                'category' => $query['category'] ?? null,
-                'stock' => $query['stock'] ?? null,
-                'sort' => $query['sort'] ?? null
-            ];
+            $result = $this->productModel->getAll($query);
 
-            $products = $this->productModel->getAll($filters);
-
-            Response::success($products);
+            Response::paginated($result['products'], $result['pagination']);
 
         } catch (Exception $e) {
             error_log('Get products error: ' . $e->getMessage());

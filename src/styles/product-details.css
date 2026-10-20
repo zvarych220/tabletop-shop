@@ -282,3 +282,85 @@
   background: #2563eb;
 }
 
+/* ==========================================================================
+   Catalog Pagination (Backend-driven)
+   ========================================================================== */
+
+.catalog-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 2.5rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid #e2e8f0;
+}
+
+.pagination-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1.15rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pagination-nav-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.pagination-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #f8fafc;
+}
+
+.pagination-pages-list {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pagination-page-btn {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pagination-page-btn:hover:not(.active) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.pagination-page-btn.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28);
+}
+
+.catalog-loading-fade {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+

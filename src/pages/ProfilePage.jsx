@@ -12,6 +12,7 @@ export default function ProfilePage() {
     name: '',
     phone: '',
     address: '',
+    telegramChatId: '',
   })
   const [saveError, setSaveError] = useState('')
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -22,6 +23,7 @@ export default function ProfilePage() {
         name: user.name || '',
         phone: user.phone || '',
         address: user.address || '',
+        telegramChatId: user.telegramChatId || '',
       })
     }
   }, [user])
@@ -194,6 +196,55 @@ export default function ProfilePage() {
               className="profile-form-input"
               disabled={!isEditing}
             />
+          </div>
+
+          <div className="profile-form-group">
+            <label htmlFor="telegramChatId" className="profile-form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span>Telegram Chat ID</span>
+              <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 'normal' }}>
+                (для сповіщень про статус замовлень)
+              </span>
+            </label>
+            <input
+              id="telegramChatId"
+              name="telegramChatId"
+              type="text"
+              value={formData.telegramChatId}
+              onChange={handleChange}
+              placeholder="Наприклад: 123456789"
+              className="profile-form-input"
+              disabled={!isEditing}
+            />
+            <div style={{ marginTop: '0.5rem', padding: '0.75rem 1rem', background: '#f0f9ff', borderRadius: '8px', border: '1px solid #bae6fd', fontSize: '0.82rem', color: '#0369a1', lineHeight: 1.55 }}>
+              📱 <strong>Як підключити Telegram-сповіщення:</strong>
+              <div style={{ marginTop: '0.3rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <span>
+                  1.{' '}
+                  <a
+                    href="https://t.me/DiceDeck_bot"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: '#0284c7', fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    Підпишіться на нашого бота @DiceDeck_bot
+                  </a>
+                  {' '}та натисніть <strong>/start</strong>
+                </span>
+                <span>
+                  2. Дізнайтеся свій Chat ID у{' '}
+                  <a
+                    href="https://t.me/userinfobot"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: '#0284c7', fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    @userinfobot
+                  </a>
+                  {' '}та вставте число у поле вище
+                </span>
+                <span>3. Натисніть «Зберегти зміни» — готово!</span>
+              </div>
+            </div>
           </div>
 
           {isEditing && (

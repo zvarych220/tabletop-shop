@@ -24,7 +24,7 @@ class User
     public function findByEmail(string $email): ?array
     {
         $stmt = $this->db->prepare('
-            SELECT id, email, password_hash, name, phone, address, role, avatar, created_at, updated_at
+            SELECT id, email, password_hash, name, phone, address, role, avatar, telegram_chat_id, created_at, updated_at
             FROM users
             WHERE email = ?
             LIMIT 1
@@ -44,7 +44,7 @@ class User
     public function findById(string $id): ?array
     {
         $stmt = $this->db->prepare('
-            SELECT id, email, name, phone, address, role, avatar, created_at, updated_at
+            SELECT id, email, name, phone, address, role, avatar, telegram_chat_id, created_at, updated_at
             FROM users
             WHERE id = ?
             LIMIT 1
@@ -94,7 +94,11 @@ class User
      */
     public function update(string $id, array $data): ?array
     {
-        $allowedFields = ['name', 'phone', 'address', 'avatar'];
+        if (isset($data['telegramChatId'])) {
+            $data['telegram_chat_id'] = $data['telegramChatId'];
+        }
+
+        $allowedFields = ['name', 'phone', 'address', 'avatar', 'telegram_chat_id'];
         $updateFields = [];
         $params = [];
 
@@ -228,6 +232,8 @@ class User
     public static function sanitize(array $user): array
     {
         unset($user['password_hash']);
+        $user['telegramChatId'] = $user['telegram_chat_id'] ?? null;
+        unset($user['telegram_chat_id']);
         return $user;
     }
 }

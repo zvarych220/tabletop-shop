@@ -35,7 +35,7 @@ class Response
      * @param int $statusCode
      * @return void
      */
-    public static function success($data = null, ?string $message = null, int $statusCode = 200): void
+    public static function success($data = null, ?string $message = null, int $statusCode = 200, array $extra = []): void
     {
         $response = ['success' => true];
 
@@ -45,6 +45,10 @@ class Response
 
         if ($data !== null) {
             $response['data'] = $data;
+        }
+
+        foreach ($extra as $key => $val) {
+            $response[$key] = $val;
         }
 
         self::json($response, $statusCode);
@@ -145,9 +149,27 @@ class Response
      *
      * @return void
      */
-    public static function noContent(): void
+    /**
+     * Send paginated response
+     *
+     * @param array $items
+     * @param array $pagination
+     * @param string|null $message
+     * @param int $statusCode
+     * @return void
+     */
+    public static function paginated(array $items, array $pagination, ?string $message = null, int $statusCode = 200): void
     {
-        http_response_code(204);
-        exit();
+        $response = [
+            'success' => true,
+            'data' => $items,
+            'pagination' => $pagination
+        ];
+
+        if ($message !== null) {
+            $response['message'] = $message;
+        }
+
+        self::json($response, $statusCode);
     }
 }

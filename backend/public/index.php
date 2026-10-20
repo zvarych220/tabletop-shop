@@ -28,13 +28,16 @@ require_once __DIR__ . '/../src/Models/User.php';
 require_once __DIR__ . '/../src/Models/Product.php';
 require_once __DIR__ . '/../src/Models/Order.php';
 require_once __DIR__ . '/../src/Models/Favorite.php';
+require_once __DIR__ . '/../src/Models/Review.php';
 
 // Load controllers
 require_once __DIR__ . '/../src/Controllers/AuthController.php';
 require_once __DIR__ . '/../src/Controllers/ProductController.php';
 require_once __DIR__ . '/../src/Controllers/OrderController.php';
 require_once __DIR__ . '/../src/Controllers/FavoriteController.php';
+require_once __DIR__ . '/../src/Controllers/ReviewController.php';
 require_once __DIR__ . '/../src/Controllers/AdminController.php';
+require_once __DIR__ . '/../src/Controllers/TelegramController.php';
 
 // Get request method and URI
 $requestMethod = $_SERVER['REQUEST_METHOD'];
@@ -146,8 +149,17 @@ try {
                 $productController->create($requestBody);
             }
         } else {
+            // Product Reviews: /api/products/{id}/reviews
+            if ($subResource === 'reviews') {
+                $reviewController = new ReviewController();
+                if ($requestMethod === 'GET') {
+                    $reviewController->getByProduct($id);
+                } elseif ($requestMethod === 'POST') {
+                    $reviewController->create($id, $requestBody);
+                }
+            }
             // GET /api/products/{id}
-            if ($requestMethod === 'GET') {
+            elseif ($requestMethod === 'GET') {
                 $productController->getById($id);
             }
             // PUT /api/products/{id}
@@ -178,7 +190,7 @@ try {
             }
         } else {
             // Check for sub-resource (e.g., /orders/{id}/status)
-            $subResource = $pathParts[3] ?? null;
+            $subResource = $uriSegments[2] ?? null;
 
             if ($subResource === 'status' && $requestMethod === 'PUT') {
                 // PUT /api/orders/{id}/status
@@ -223,6 +235,29 @@ try {
     }
 
     // ============================================
+    // REVIEWS MODERATION ROUTES
+    // ============================================
+    elseif ($resource === 'reviews') {
+        $reviewController = new ReviewController();
+
+        if ($id === null) {
+            // GET /api/reviews
+            if ($requestMethod === 'GET') {
+                $reviewController->getAll($queryParams);
+            }
+        } else {
+            // PUT /api/reviews/{id}/status
+            if ($subResource === 'status' && $requestMethod === 'PUT') {
+                $reviewController->updateStatus($id, $requestBody);
+            }
+            // DELETE /api/reviews/{id}
+            elseif ($requestMethod === 'DELETE') {
+                $reviewController->delete($id);
+            }
+        }
+    }
+
+    // ============================================
     // ADMIN ROUTES
     // ============================================
     elseif ($resource === 'admin') {
@@ -249,6 +284,23 @@ try {
             // GET /api/admin/analytics
             if ($requestMethod === 'GET') {
                 $adminController->getAnalytics();
+            }
+        } elseif ($id === 'telegram') {
+            $telegramController = new TelegramController();
+            if ($subResource === 'test') {
+                // POST /api/admin/telegram/test
+                if ($requestMethod === 'POST') {
+                    $telegramController->test($requestBody);
+                }
+            } else {
+                // GET /api/admin/telegram
+                if ($requestMethod === 'GET') {
+                    $telegramController->getSettings();
+                }
+                // POST /api/admin/telegram
+                elseif ($requestMethod === 'POST') {
+                    $telegramController->saveSettings($requestBody);
+                }
             }
         }
     }

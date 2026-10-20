@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useCallback } from 'react'
 import { useProducts } from '../../hooks/useProducts.js'
+import { api } from '../../services/api.js'
 import {
   PlusIcon,
   EditIcon,
@@ -14,9 +15,18 @@ import {
 } from '../../components/ui/Icons.jsx'
 
 export default function AdminProductsPage() {
-  const { products, setProducts } = useProducts()
+  const {
+    products,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    refreshProducts,
+  } = useProducts()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [deletingId, setDeletingId] = useState(null)
 
   // Filters & Search state
   const [searchQuery, setSearchQuery] = useState('')
@@ -35,6 +45,10 @@ export default function AdminProductsPage() {
     description: '',
   })
   const [images, setImages] = useState([])
+  const [uploadingImages, setUploadingImages] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const [isDragOver, setIsDragOver] = useState(false)
+  const fileInputRef = useRef(null)
 
   // Dynamic categories list
   const categories = useMemo(() => {
@@ -97,6 +111,8 @@ export default function AdminProductsPage() {
   }, [products, searchQuery, categoryFilter, stockFilter, sortBy])
 
   function handleOpenModal(product = null) {
+    setSubmitError('')
+    setUploadError('')
     if (product) {
       setEditingProduct(product)
       setFormData({
@@ -130,6 +146,8 @@ export default function AdminProductsPage() {
   function handleCloseModal() {
     setIsModalOpen(false)
     setEditingProduct(null)
+    setSubmitError('')
+    setUploadError('')
   }
 
   function handleChange(e) {
@@ -137,16 +155,68 @@ export default function AdminProductsPage() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  function handleAddImage() {
+  const handleUploadFiles = useCallback(async (files) => {
+    const validFiles = Array.from(files).filter((f) => f.type.startsWith('image/'))
+    if (validFiles.length === 0) return
+
+    setUploadError('')
+    setUploadingImages(true)
+    const results = []
+
+    for (const file of validFiles) {
+      // Show local preview immediately
+      const localUrl = URL.createObjectURL(file)
+      const tempId = `tmp-${Date.now()}-${Math.random()}`
+      setImages((prev) => [
+        ...prev,
+        { id: tempId, url: localUrl, isPrimary: prev.length === 0, uploading: true },
+      ])
+
+      try {
+        const data = await api.upload(file, 'products')
+        const serverUrl = data.url
+        setImages((prev) =>
+          prev.map((img) =>
+            img.id === tempId ? { ...img, url: serverUrl, uploading: false } : img
+          )
+        )
+        results.push(serverUrl)
+      } catch (err) {
+        // Remove failed temp image
+        setImages((prev) => prev.filter((img) => img.id !== tempId))
+        setUploadError(`Не вдалося завантажити "${file.name}": ${err.message}`)
+      }
+    }
+
+    setUploadingImages(false)
+  }, [])
+
+  function handleFileInputChange(e) {
+    handleUploadFiles(e.target.files)
+    e.target.value = '' // allow re-selecting same file
+  }
+
+  function handleDrop(e) {
+    e.preventDefault()
+    setIsDragOver(false)
+    handleUploadFiles(e.dataTransfer.files)
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault()
+    setIsDragOver(true)
+  }
+
+  function handleDragLeave() {
+    setIsDragOver(false)
+  }
+
+  function handleAddImageUrl() {
     const url = prompt('Введіть пряме URL посилання на зображення:')
     if (url && url.trim()) {
       setImages((prev) => [
         ...prev,
-        {
-          id: `img-${Date.now()}`,
-          url: url.trim(),
-          isPrimary: prev.length === 0,
-        },
+        { id: `img-${Date.now()}`, url: url.trim(), isPrimary: prev.length === 0 },
       ])
     }
   }
@@ -168,53 +238,79 @@ export default function AdminProductsPage() {
     )
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
 
-    const primaryImage =
-      images.find((img) => img.isPrimary) ||
-      images[0] || {
-        url: 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?auto=format&fit=crop&w=800&q=80',
-      }
-    const price = Number(formData.price)
-    const oldPrice = formData.oldPrice ? Number(formData.oldPrice) : null
-    const discount = oldPrice
-      ? `-${Math.round(((oldPrice - price) / oldPrice) * 100)}%`
-      : ''
-
-    const productData = {
-      ...formData,
-      price,
-      oldPrice,
-      discount,
-      stockQuantity: Number(formData.stockQuantity),
-      inStock: Number(formData.stockQuantity) > 0,
-      images,
-      image: primaryImage.url,
+    if (uploadingImages || images.some((img) => img.uploading)) {
+      setSubmitError('Зачекайте, будь ласка, поки всі фотографії завершать завантаження')
+      return
     }
 
-    if (editingProduct) {
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === editingProduct.id ? { ...p, ...productData } : p
-        )
-      )
-    } else {
-      const newProduct = {
-        id: `game-${Date.now()}`,
-        ...productData,
-        rating: 5,
-        ratingCount: 1,
-      }
-      setProducts((prev) => [newProduct, ...prev])
-    }
+    setSubmitError('')
+    setIsSubmitting(true)
 
-    handleCloseModal()
+    try {
+      const primaryImage =
+        images.find((img) => img.isPrimary) ||
+        images[0] || {
+          url: 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?auto=format&fit=crop&w=800&q=80',
+        }
+      const price = Number(formData.price)
+      const oldPrice = formData.oldPrice ? Number(formData.oldPrice) : null
+
+      const imagesToSend = images.map((img) => ({
+        url: img.url,
+        isPrimary: img.url === primaryImage.url || Boolean(img.isPrimary),
+      }))
+
+      if (imagesToSend.length === 0 && primaryImage.url) {
+        imagesToSend.push({
+          url: primaryImage.url,
+          isPrimary: true,
+        })
+      }
+
+      const productPayload = {
+        title: formData.title.trim(),
+        category: formData.category.trim(),
+        players: formData.players.trim(),
+        playTime: formData.playTime.trim(),
+        price,
+        oldPrice,
+        stockQuantity: Number(formData.stockQuantity) || 0,
+        description: formData.description.trim(),
+        image: primaryImage.url,
+        images: imagesToSend,
+      }
+
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, productPayload)
+      } else {
+        await createProduct(productPayload)
+      }
+
+      handleCloseModal()
+    } catch (err) {
+      console.error('Error saving product:', err)
+      setSubmitError(err.message || 'Не вдалося зберегти товар. Перевірте зʼєднання з базою даних.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  function handleDelete(id) {
-    if (confirm('Ви впевнені, що хочете видалити цей товар?')) {
-      setProducts((prev) => prev.filter((p) => p.id !== id))
+  async function handleDelete(id) {
+    if (!confirm('Ви впевнені, що хочете видалити цей товар?')) {
+      return
+    }
+
+    setDeletingId(id)
+    try {
+      await deleteProduct(id)
+    } catch (err) {
+      console.error('Error deleting product:', err)
+      alert(`Помилка видалення товару: ${err.message || 'Спробуйте пізніше'}`)
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -531,6 +627,8 @@ export default function AdminProductsPage() {
                             className="admin-btn-icon danger"
                             title="Видалити товар"
                             aria-label="Видалити"
+                            disabled={deletingId === product.id}
+                            style={{ opacity: deletingId === product.id ? 0.4 : 1 }}
                           >
                             <TrashIcon size={17} />
                           </button>
@@ -577,6 +675,12 @@ export default function AdminProductsPage() {
 
             <form onSubmit={handleSubmit} className="admin-modal-form">
               <div className="admin-modal-content">
+                {submitError && (
+                  <div className="admin-login-error" style={{ marginBottom: '16px' }}>
+                    <AlertTriangleIcon size={16} />
+                    <span>{submitError}</span>
+                  </div>
+                )}
                 <div className="admin-form-section">
                   <h4 className="admin-form-section-title">Основні дані</h4>
                   <div className="admin-form-row">
@@ -718,65 +822,122 @@ export default function AdminProductsPage() {
                         Галерея зображень
                       </h4>
                       <p className="admin-form-section-sub">
-                        Додайте прямі URL зображень товару
+                        Завантажте фото з комп'ютера або вставте URL
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleAddImage}
-                      className="admin-btn-secondary admin-btn-sm"
-                    >
-                      <ImageIcon size={16} />
-                      <span>+ Додати фото</span>
-                    </button>
-                  </div>
-
-                  {images.length === 0 ? (
-                    <div className="admin-images-empty">
-                      <p>Не додано жодного зображення. Буде використано фото за замовчуванням.</p>
+                    <div style={{ display: 'flex', gap: '8px' }}>
                       <button
                         type="button"
-                        onClick={handleAddImage}
-                        className="admin-btn-secondary admin-btn-xs"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="admin-btn-primary admin-btn-sm"
+                        disabled={uploadingImages}
                       >
-                        Додати URL фото
+                        <ImageIcon size={16} />
+                        <span>{uploadingImages ? 'Завантаження...' : '+ Обрати фото'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleAddImageUrl}
+                        className="admin-btn-secondary admin-btn-sm"
+                      >
+                        <span>+ URL</span>
                       </button>
                     </div>
-                  ) : (
-                    <div className="admin-images-grid">
-                      {images.map((img) => (
-                        <div
-                          key={img.id}
-                          className={`admin-image-card ${
-                            img.isPrimary ? 'is-primary' : ''
-                          }`}
-                        >
-                          <img src={img.url} alt="Прев'ю товару" />
-                          <div className="admin-image-actions">
-                            {img.isPrimary ? (
-                              <span className="admin-primary-badge">
-                                ★ Головне
-                              </span>
-                            ) : (
+                  </div>
+
+                  {/* Hidden file input */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                    multiple
+                    style={{ display: 'none' }}
+                    onChange={handleFileInputChange}
+                  />
+
+                  {/* Drag & Drop Zone */}
+                  {images.length === 0 && (
+                    <div
+                      className={`admin-drop-zone ${isDragOver ? 'drag-over' : ''}`}
+                      onDrop={handleDrop}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onClick={() => fileInputRef.current?.click()}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
+                    >
+                      <ImageIcon size={36} style={{ opacity: 0.4, marginBottom: '10px' }} />
+                      <p style={{ margin: 0, fontWeight: 600 }}>Перетягніть фото сюди</p>
+                      <p style={{ margin: '4px 0 0', fontSize: '0.8rem', opacity: 0.6 }}>
+                        або натисніть щоб обрати · JPG, PNG, WebP · до 5 МБ
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Upload error */}
+                  {uploadError && (
+                    <div className="admin-login-error" style={{ marginTop: '8px' }}>
+                      <AlertTriangleIcon size={15} />
+                      <span>{uploadError}</span>
+                    </div>
+                  )}
+
+                  {/* Images grid */}
+                  {images.length > 0 && (
+                    <>
+                      <div className="admin-images-grid">
+                        {images.map((img) => (
+                          <div
+                            key={img.id}
+                            className={`admin-image-card ${img.isPrimary ? 'is-primary' : ''} ${img.uploading ? 'is-uploading' : ''}`}
+                          >
+                            <img src={img.url} alt="Прев'ю" />
+                            {img.uploading && (
+                              <div className="admin-image-upload-overlay">
+                                <span className="admin-img-spinner" />
+                              </div>
+                            )}
+                            <div className="admin-image-actions">
+                              {img.isPrimary ? (
+                                <span className="admin-primary-badge">★ Головне</span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleSetPrimary(img.id)}
+                                  className="admin-btn-xs admin-btn-set-primary"
+                                  disabled={img.uploading}
+                                >
+                                  Головне
+                                </button>
+                              )}
                               <button
                                 type="button"
-                                onClick={() => handleSetPrimary(img.id)}
-                                className="admin-btn-xs admin-btn-set-primary"
+                                onClick={() => handleRemoveImage(img.id)}
+                                className="admin-btn-xs admin-btn-danger"
                               >
-                                Зробити головним
+                                ✕
                               </button>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveImage(img.id)}
-                              className="admin-btn-xs admin-btn-danger"
-                            >
-                              Видалити
-                            </button>
+                            </div>
                           </div>
+                        ))}
+
+                        {/* Add more — small drop card */}
+                        <div
+                          className={`admin-image-add-card ${isDragOver ? 'drag-over' : ''}`}
+                          onDrop={handleDrop}
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                          onClick={() => fileInputRef.current?.click()}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
+                        >
+                          <ImageIcon size={22} style={{ opacity: 0.5 }} />
+                          <span>+ Додати</span>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -786,11 +947,25 @@ export default function AdminProductsPage() {
                   type="button"
                   onClick={handleCloseModal}
                   className="admin-btn-secondary"
+                  disabled={isSubmitting}
                 >
                   Скасувати
                 </button>
-                <button type="submit" className="admin-btn-primary">
-                  {editingProduct ? 'Зберегти зміни' : 'Створити товар'}
+                <button
+                  type="submit"
+                  className="admin-btn-primary"
+                  disabled={isSubmitting || uploadingImages}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span className="admin-btn-spinner" />
+                      <span>Збереження...</span>
+                    </>
+                  ) : editingProduct ? (
+                    'Зберегти зміни'
+                  ) : (
+                    'Створити товар'
+                  )}
                 </button>
               </div>
             </form>

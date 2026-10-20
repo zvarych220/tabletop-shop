@@ -9,10 +9,12 @@ import {
   ZapIcon,
 } from '../components/ui/Icons.jsx'
 import { validateOrder } from '../domain/orderValidation.js'
+import useAuth from '../hooks/useAuth.js'
 
 const emptyDraft = {
   fullName: '',
   phone: '',
+  telegramChatId: '',
   deliveryService: 'nova_poshta',
   city: '',
   branch: '',
@@ -33,9 +35,12 @@ export default function OrderPage({
   submitLabel = 'Оформити замовлення',
   cancelLabel = 'Скасувати',
 }) {
+  const { user } = useAuth()
+
   const initialValues = {
-    fullName: initialDraft.fullName ?? '',
-    phone: initialDraft.phone ?? '',
+    fullName: initialDraft.fullName || user?.name || '',
+    phone: initialDraft.phone || user?.phone || '',
+    telegramChatId: initialDraft.telegramChatId || user?.telegramChatId || '',
     deliveryService: initialDraft.deliveryService ?? 'nova_poshta',
     city: initialDraft.city ?? '',
     branch: initialDraft.branch ?? '',

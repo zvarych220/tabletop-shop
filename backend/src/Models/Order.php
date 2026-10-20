@@ -131,10 +131,10 @@ class Order
             // Insert order
             $stmt = $this->db->prepare('
                 INSERT INTO orders (
-                    id, user_id, game_id, full_name, phone, delivery_service,
+                    id, user_id, game_id, full_name, phone, telegram_chat_id, delivery_service,
                     city, branch, payment_method, comment, total_price,
                     duration_hours, needs_consultation, status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ');
 
             $stmt->execute([
@@ -143,6 +143,7 @@ class Order
                 $data['gameId'] ?? null,
                 $data['fullName'],
                 $data['phone'],
+                $data['telegramChatId'] ?? null,
                 $data['deliveryService'],
                 $data['city'],
                 $data['branch'],
@@ -183,6 +184,7 @@ class Order
         $allowedFields = [
             'full_name' => 'fullName',
             'phone' => 'phone',
+            'telegram_chat_id' => 'telegramChatId',
             'delivery_service' => 'deliveryService',
             'city' => 'city',
             'branch' => 'branch',
@@ -277,6 +279,7 @@ class Order
             'gameId' => $order['game_id'],
             'fullName' => $order['full_name'],
             'phone' => $order['phone'],
+            'telegramChatId' => $order['telegram_chat_id'] ?? null,
             'deliveryService' => $order['delivery_service'],
             'city' => $order['city'],
             'branch' => $order['branch'],

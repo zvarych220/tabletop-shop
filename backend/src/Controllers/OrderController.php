@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/../Models/Order.php';
 require_once __DIR__ . '/../Models/Product.php';
+require_once __DIR__ . '/../Services/TelegramService.php';
 require_once __DIR__ . '/../Middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../Utils/Response.php';
 require_once __DIR__ . '/../Utils/Validator.php';
@@ -124,11 +125,17 @@ class OrderController
 
         // Create order
         try {
+            $telegramChatId = !empty($data['telegramChatId']) ? trim($data['telegramChatId']) : null;
+            if (empty($telegramChatId) && !empty($user['telegramChatId'])) {
+                $telegramChatId = $user['telegramChatId'];
+            }
+
             $orderData = [
                 'userId' => $user['id'] ?? null,
                 'gameId' => $data['gameId'] ?? ($orderedItems[0]['gameId'] ?? null),
                 'fullName' => $data['fullName'],
                 'phone' => $data['phone'],
+                'telegramChatId' => $telegramChatId,
                 'deliveryService' => $data['deliveryService'],
                 'city' => $data['city'],
                 'branch' => $data['branch'],
@@ -145,6 +152,17 @@ class OrderController
             // Decrease stock quantities
             foreach ($orderedItems as $item) {
                 $this->productModel->decreaseStock($item['gameId'], $item['quantity']);
+            }
+
+            // Send Telegram notifications (Admin and Customer)
+            try {
+                $telegramService = new TelegramService();
+                $telegramService->notifyAdminNewOrder($order, $orderedItems);
+                if (!empty($order['telegramChatId'])) {
+                    $telegramService->notifyUserOrderCreated($order, $orderedItems);
+                }
+            } catch (Exception $tgEx) {
+                error_log('Telegram order notification error: ' . $tgEx->getMessage());
             }
 
             Response::created($order, 'Order created successfully');
@@ -196,7 +214,19 @@ class OrderController
 
         // Update order
         try {
+            $oldStatus = $order['status'];
             $updatedOrder = $this->orderModel->update($id, $data);
+
+            // Notify customer via Telegram if status changed
+            if (isset($data['status']) && $data['status'] !== $oldStatus && !empty($updatedOrder['telegramChatId'])) {
+                try {
+                    $telegramService = new TelegramService();
+                    $items = $this->orderModel->getOrderItems($id);
+                    $telegramService->notifyUserOrderStatusChanged($updatedOrder, $data['status'], $items);
+                } catch (Exception $tgEx) {
+                    error_log('Telegram status notification error: ' . $tgEx->getMessage());
+                }
+            }
 
             Response::success($updatedOrder, 'Order updated successfully');
 
@@ -233,9 +263,21 @@ class OrderController
 
         // Update only status
         try {
+            $oldStatus = $order['status'];
             $updatedOrder = $this->orderModel->update($id, [
                 'status' => $data['status']
             ]);
+
+            // Notify customer via Telegram if status changed
+            if ($data['status'] !== $oldStatus && !empty($updatedOrder['telegramChatId'])) {
+                try {
+                    $telegramService = new TelegramService();
+                    $items = $this->orderModel->getOrderItems($id);
+                    $telegramService->notifyUserOrderStatusChanged($updatedOrder, $data['status'], $items);
+                } catch (Exception $tgEx) {
+                    error_log('Telegram status notification error: ' . $tgEx->getMessage());
+                }
+            }
 
             Response::success($updatedOrder, 'Order status updated successfully');
 

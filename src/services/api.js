@@ -38,10 +38,27 @@ const handleResponse = async (response) => {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.error || data.message || 'Request failed');
+    let errorMsg = data.error || data.message || 'Request failed';
+    if (data.errors && typeof data.errors === 'object') {
+      const errorList = Object.values(data.errors).join(', ');
+      if (errorList) {
+        errorMsg = `${errorMsg}: ${errorList}`;
+      }
+    }
+    const err = new Error(errorMsg);
+    err.data = data;
+    throw err;
   }
 
-  return data.data || data;
+  if (Array.isArray(data.data)) {
+    const list = data.data;
+    if (data.pagination !== undefined) list.pagination = data.pagination;
+    if (data.counts !== undefined) list.counts = data.counts;
+    list.data = data.data;
+    return list;
+  }
+
+  return data.data !== undefined ? data.data : data;
 };
 
 /**
@@ -124,7 +141,13 @@ export const api = {
   // Products endpoints
   products: {
     getAll: (params = {}) => {
-      const query = new URLSearchParams(params).toString();
+      const cleanParams = {};
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') {
+          cleanParams[k] = v;
+        }
+      });
+      const query = new URLSearchParams(cleanParams).toString();
       return apiRequest(`/products${query ? `?${query}` : ''}`, { auth: false });
     },
 
@@ -189,6 +212,36 @@ export const api = {
     }),
   },
 
+  // Reviews endpoints
+  reviews: {
+    getByProduct: (productId) => apiRequest(`/products/${productId}/reviews`, { auth: false }),
+
+    create: (productId, data) => apiRequest(`/products/${productId}/reviews`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+    getAll: (params = {}) => {
+      const cleanParams = {};
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') {
+          cleanParams[k] = v;
+        }
+      });
+      const query = new URLSearchParams(cleanParams).toString();
+      return apiRequest(`/reviews${query ? `?${query}` : ''}`);
+    },
+
+    updateStatus: (id, status) => apiRequest(`/reviews/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    }),
+
+    delete: (id) => apiRequest(`/reviews/${id}`, {
+      method: 'DELETE',
+    }),
+  },
+
   // Admin endpoints
   admin: {
     getUsers: (params = {}) => {
@@ -202,6 +255,18 @@ export const api = {
     }),
 
     getAnalytics: () => apiRequest('/admin/analytics'),
+
+    getTelegramSettings: () => apiRequest('/admin/telegram'),
+
+    saveTelegramSettings: (data) => apiRequest('/admin/telegram', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+    testTelegram: (data = {}) => apiRequest('/admin/telegram/test', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
   },
 
   // File upload

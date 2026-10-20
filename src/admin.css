@@ -1070,6 +1070,18 @@
   color: #dc2626;
 }
 
+.admin-btn-icon.success:hover {
+  background-color: #dcfce7;
+  border-color: #86efac;
+  color: #16a34a;
+}
+
+.admin-btn-icon.warning:hover {
+  background-color: #fef3c7;
+  border-color: #fde68a;
+  color: #d97706;
+}
+
 /* Order ID Badge */
 .admin-order-id-badge {
   font-family: monospace;
@@ -1616,6 +1628,103 @@
   font-weight: 700;
   border-radius: var(--radius-sm);
 }
+
+/* Drag & Drop Zone */
+.admin-drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: #f8fafc;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+  user-select: none;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.admin-drop-zone:hover,
+.admin-drop-zone:focus,
+.admin-drop-zone.drag-over {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #2563eb;
+  outline: none;
+}
+
+/* Uploading state on image card */
+.admin-image-card.is-uploading {
+  opacity: 0.75;
+}
+
+.admin-image-upload-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+@keyframes admin-spin {
+  to { transform: rotate(360deg); }
+}
+
+.admin-img-spinner {
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  border: 3px solid #cbd5e1;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: admin-spin 0.7s linear infinite;
+}
+
+.admin-btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: admin-spin 0.7s linear infinite;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* "Add more" mini card in the grid */
+.admin-image-add-card {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: #f8fafc;
+  height: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+  user-select: none;
+}
+
+.admin-image-add-card:hover,
+.admin-image-add-card:focus,
+.admin-image-add-card.drag-over {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #2563eb;
+  outline: none;
+}
+
 
 /* Order Details Modal Specifics */
 .admin-modal-status-bar {

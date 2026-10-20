@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router'
 import { useProducts } from '../hooks/useProducts.js'
 import BoardGameCard from '../components/games/BoardGameCard.jsx'
@@ -14,9 +15,20 @@ import {
   UserCircleIcon,
 } from '../components/ui/Icons.jsx'
 
-
 export default function HomePage() {
   const { products } = useProducts()
+
+  // Top 4 games with the highest rating (and ratingCount as tiebreaker)
+  const topRatedProducts = useMemo(() => {
+    if (!Array.isArray(products) || products.length === 0) return []
+    return [...products]
+      .sort((a, b) => {
+        const diff = Number(b.rating || 0) - Number(a.rating || 0)
+        if (diff !== 0) return diff
+        return Number(b.ratingCount || 0) - Number(a.ratingCount || 0)
+      })
+      .slice(0, 4)
+  }, [products])
 
   return (
     <div className="labubu-styled-home">
@@ -189,7 +201,7 @@ export default function HomePage() {
         </div>
 
         <div className="games-grid">
-          {products.map((game) => (
+          {topRatedProducts.map((game) => (
             <BoardGameCard key={game.id} game={game} />
           ))}
         </div>

@@ -99,6 +99,10 @@ export function validateOrder(input, items = []) {
   if (input.status !== undefined) value.status = input.status
   if (input.createdAt !== undefined) value.createdAt = input.createdAt
 
+  // Telegram Chat ID — optional, pass through if present
+  const rawTelegramChatId = typeof input?.telegramChatId === 'string' ? input.telegramChatId.trim() : ''
+  if (rawTelegramChatId) value.telegramChatId = rawTelegramChatId
+
   return {
     ok: true,
     errors: {},

@@ -13,14 +13,18 @@ import {
   CloseIcon,
   DiceIcon,
   SparklesIcon,
+  MessageSquareIcon,
+  SendIcon,
 } from '../ui/Icons.jsx'
 
 const PAGE_BREADCRUMBS = {
   '/admin': 'Товари',
   '/admin/products': 'Товари',
   '/admin/orders': 'Замовлення',
+  '/admin/reviews': 'Відгуки',
   '/admin/users': 'Користувачі',
   '/admin/analytics': 'Аналітика',
+  '/admin/telegram': 'Telegram Бот',
 }
 
 export default function AdminLayout() {
@@ -119,6 +123,19 @@ export default function AdminLayout() {
           </NavLink>
 
           <NavLink
+            to="/admin/reviews"
+            onClick={closeMobileNav}
+            className={({ isActive }) =>
+              isActive ? 'admin-nav-link active' : 'admin-nav-link'
+            }
+          >
+            <span className="admin-nav-icon">
+              <MessageSquareIcon size={20} />
+            </span>
+            <span className="admin-nav-text">Відгуки</span>
+          </NavLink>
+
+          <NavLink
             to="/admin/users"
             onClick={closeMobileNav}
             className={({ isActive }) =>
@@ -142,6 +159,19 @@ export default function AdminLayout() {
               <BarChartIcon size={20} />
             </span>
             <span className="admin-nav-text">Аналітика</span>
+          </NavLink>
+
+          <NavLink
+            to="/admin/telegram"
+            onClick={closeMobileNav}
+            className={({ isActive }) =>
+              isActive ? 'admin-nav-link active' : 'admin-nav-link'
+            }
+          >
+            <span className="admin-nav-icon">
+              <SendIcon size={20} />
+            </span>
+            <span className="admin-nav-text">Telegram Бот</span>
           </NavLink>
 
           <div className="admin-sidebar-divider" />

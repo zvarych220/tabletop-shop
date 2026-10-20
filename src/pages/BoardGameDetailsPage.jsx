@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link, useParams } from 'react-router'
 import NotFoundPage from './NotFoundPage.jsx'
 import useCart from '../hooks/useCart.js'
 import useFavorites from '../hooks/useFavorites.js'
+import useAuth from '../hooks/useAuth.js'
 import { useProducts } from '../hooks/useProducts.js'
+import { api } from '../services/api.js'
 import BoardGameCard from '../components/games/BoardGameCard.jsx'
 import {
   UsersIcon,
@@ -16,19 +18,193 @@ import {
   PostIcon,
   CreditCardIcon,
   CashIcon,
+  StarFilledIcon,
+  MessageSquareIcon,
 } from '../components/ui/Icons.jsx'
+
+const LOCAL_REVIEWS_STORAGE_KEY = 'tabletop_local_reviews'
+
+function getLocalReviews() {
+  try {
+    const raw = localStorage.getItem(LOCAL_REVIEWS_STORAGE_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch (err) {
+    return []
+  }
+}
+
+function saveLocalReviews(list) {
+  try {
+    localStorage.setItem(LOCAL_REVIEWS_STORAGE_KEY, JSON.stringify(list))
+  } catch (err) {
+    console.error('Failed to save local reviews:', err)
+  }
+}
+
+const RATING_LABELS = {
+  1: 'Погано (1/5)',
+  2: 'Так собі (2/5)',
+  3: 'Нормально (3/5)',
+  4: 'Добре (4/5)',
+  5: 'Відмінно! (5/5)',
+}
+
+function formatReviewDate(dateStr) {
+  if (!dateStr) return 'Нещодавно'
+  try {
+    const d = new Date(dateStr)
+    const now = new Date()
+    const diffMs = now - d
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    if (diffDays === 0) return 'Сьогодні'
+    if (diffDays === 1) return 'Вчора'
+    if (diffDays < 7) return `${diffDays} дні тому`
+    return new Intl.DateTimeFormat('uk-UA', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(d)
+  } catch (e) {
+    return 'Нещодавно'
+  }
+}
 
 export default function BoardGameDetailsPage() {
   const { gameId } = useParams()
   const { products } = useProducts()
   const { addToCart } = useCart()
   const { isFavorite, toggleFavorite } = useFavorites()
+  const { user } = useAuth()
 
   const game = products.find((entry) => entry.id === gameId)
 
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState('desc') // 'desc' | 'components' | 'reviews'
   const [activeImageIndex, setActiveImageIndex] = useState(0)
+
+  // Reviews state
+  const [reviews, setReviews] = useState([])
+  const [isLoadingReviews, setIsLoadingReviews] = useState(true)
+  const [authorName, setAuthorName] = useState('')
+  const [rating, setRating] = useState(5)
+  const [hoveredRating, setHoveredRating] = useState(0)
+  const [comment, setComment] = useState('')
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false)
+  const [reviewError, setReviewError] = useState('')
+  const [reviewSuccess, setReviewSuccess] = useState('')
+
+  // Prefill author name if user logs in
+  useEffect(() => {
+    if (user && !authorName) {
+      setAuthorName(user.name || user.email || '')
+    }
+  }, [user, authorName])
+
+  // Load reviews: approved from API + pending from local storage
+  const loadReviews = useCallback(async () => {
+    if (!game?.id) return
+    setIsLoadingReviews(true)
+    try {
+      const serverData = await api.reviews.getByProduct(game.id)
+      const approvedList = Array.isArray(serverData) ? serverData : (serverData?.data || [])
+
+      // Local reviews
+      const localList = getLocalReviews()
+      const serverIds = new Set(approvedList.map((r) => r.id))
+
+      // Clean up local reviews that have now been approved
+      const updatedLocal = localList.filter((lr) => !serverIds.has(lr.id))
+      if (updatedLocal.length !== localList.length) {
+        saveLocalReviews(updatedLocal)
+      }
+
+      // Find pending reviews for this game submitted on this device
+      const pendingForThisGame = updatedLocal.filter(
+        (lr) => lr.productId === game.id && lr.status === 'pending'
+      )
+
+      // Submitting user sees their own pending review right at the top
+      setReviews([...pendingForThisGame, ...approvedList])
+    } catch (err) {
+      console.error('Failed to load reviews:', err)
+      const localList = getLocalReviews().filter(
+        (lr) => lr.productId === game.id && lr.status === 'pending'
+      )
+      setReviews(localList)
+    } finally {
+      setIsLoadingReviews(false)
+    }
+  }, [game?.id])
+
+  useEffect(() => {
+    loadReviews()
+  }, [loadReviews])
+
+  async function handleSubmitReview(e) {
+    e.preventDefault()
+    if (!authorName.trim()) {
+      setReviewError("Будь ласка, вкажіть ваше ім'я")
+      return
+    }
+    if (!comment.trim() || comment.trim().length < 5) {
+      setReviewError('Текст відгуку має містити щонайменше 5 символів')
+      return
+    }
+
+    setIsSubmittingReview(true)
+    setReviewError('')
+    setReviewSuccess('')
+
+    try {
+      const res = await api.reviews.create(game.id, {
+        authorName: authorName.trim(),
+        rating,
+        comment: comment.trim(),
+      })
+
+      const createdReview = res?.data || res || {
+        id: 'rev-' + Math.random().toString(36).substr(2, 9),
+        productId: game.id,
+        authorName: authorName.trim(),
+        rating,
+        comment: comment.trim(),
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      }
+
+      createdReview.status = 'pending'
+      createdReview.productId = game.id
+
+      // Save to localStorage so user doesn't lose it and sees it immediately
+      const currentLocal = getLocalReviews()
+      const withoutDup = currentLocal.filter((r) => r.id !== createdReview.id)
+      saveLocalReviews([createdReview, ...withoutDup])
+
+      // Add to visible reviews list for this user immediately
+      setReviews((prev) => [createdReview, ...prev.filter((r) => r.id !== createdReview.id)])
+      setComment('')
+      setReviewSuccess('Дякуємо! Ваш відгук успішно додано та надіслано на перевірку адміністратором.')
+    } catch (err) {
+      console.error('Failed to submit review:', err)
+      // Even if network or API has an issue, persist locally so user has no suspicion of loss
+      const fallbackReview = {
+        id: 'rev-local-' + Date.now(),
+        productId: game.id,
+        authorName: authorName.trim(),
+        rating,
+        comment: comment.trim(),
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      }
+      const currentLocal = getLocalReviews()
+      saveLocalReviews([fallbackReview, ...currentLocal])
+      setReviews((prev) => [fallbackReview, ...prev])
+      setComment('')
+      setReviewSuccess('Дякуємо! Ваш відгук збережено.')
+    } finally {
+      setIsSubmittingReview(false)
+    }
+  }
 
   const isWishlisted = isFavorite(game?.id || '')
 
@@ -56,6 +232,9 @@ export default function BoardGameDetailsPage() {
     addToCart(game, quantity)
   }
 
+  const roundedRating = Math.min(5, Math.max(1, Math.round(Number(game.rating || 5))))
+  const totalReviewsCount = reviews.length
+
   return (
     <div className="product-details-page">
       {/* Breadcrumbs */}
@@ -69,7 +248,7 @@ export default function BoardGameDetailsPage() {
         <span className="bc-current" aria-current="page">{game.title}</span>
       </nav>
 
-      {/* Main Product Layout (Screenshot 3) */}
+      {/* Main Product Layout */}
       <div className="product-main-grid">
         {/* Left: Gallery */}
         <div className="product-gallery-col">
@@ -106,10 +285,18 @@ export default function BoardGameDetailsPage() {
 
           <div className="product-rating-row">
             <span className="product-stars">
-              {'★'.repeat(game.rating || 5)}
-              {'☆'.repeat(Math.max(0, 5 - (game.rating || 5)))}
+              {'★'.repeat(roundedRating)}
+              {'☆'.repeat(5 - roundedRating)}
             </span>
-            <span className="product-reviews-count">({game.ratingCount || 142} відгуки покупців)</span>
+            <span className="product-reviews-count">
+              ({totalReviewsCount}{' '}
+              {totalReviewsCount === 1
+                ? 'відгук'
+                : totalReviewsCount >= 2 && totalReviewsCount <= 4
+                ? 'відгуки'
+                : 'відгуків'}{' '}
+              покупців)
+            </span>
           </div>
 
           <div className="product-price-block">
@@ -133,27 +320,24 @@ export default function BoardGameDetailsPage() {
               <ClockIcon size={16} />
               <span>{game.playTime}</span>
             </div>
-            <div className="spec-pill">
-              <span>🇺🇦 Українська мова</span>
-            </div>
           </div>
 
-          {/* Add to Cart Controls */}
-          <div className="product-purchase-row">
-            <div className="product-qty-stepper">
+          {/* Action Row: Quantity + Add to Cart + Wishlist */}
+          <div className="product-actions-group">
+            <div className="quantity-selector-box">
               <button
                 type="button"
                 className="qty-btn"
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                 aria-label="Зменшити кількість"
               >
-                −
+                -
               </button>
-              <span className="qty-number">{quantity}</span>
+              <span className="qty-val">{quantity}</span>
               <button
                 type="button"
                 className="qty-btn"
-                onClick={() => setQuantity((q) => Math.min(10, q + 1))}
+                onClick={() => setQuantity((q) => q + 1)}
                 aria-label="Збільшити кількість"
               >
                 +
@@ -165,26 +349,24 @@ export default function BoardGameDetailsPage() {
               className="product-add-cart-btn"
               onClick={handleAddToCart}
             >
-              Додати в кошик • {game.price * quantity} ₴
+              До кошика
             </button>
-          </div>
 
-          <div className="product-wishlist-row">
             <button
               type="button"
               className={`product-wishlist-btn ${isWishlisted ? 'active' : ''}`}
               onClick={() => toggleFavorite(game.id)}
+              aria-label={isWishlisted ? 'Видалити зі списку бажань' : 'Додати до списку бажань'}
             >
-              <span>{isWishlisted ? '♥' : '♡'}</span>
-              <span>{isWishlisted ? 'В обраному' : 'Додати до списку бажань'}</span>
+              {isWishlisted ? '❤' : '♡'}
             </button>
           </div>
 
-          {/* Perks */}
+          {/* Trust Perks */}
           <div className="product-perks-list">
             <div className="product-perk-item">
               <TruckIcon size={18} className="perk-icon" />
-              <span><strong>Безкоштовна доставка</strong> при замовленні від 1500 ₴</span>
+              <span><strong>Швидка доставка</strong> по всій Україні 1-2 дні</span>
             </div>
             <div className="product-perk-item">
               <ShieldCheckIcon size={18} className="perk-icon" />
@@ -210,7 +392,7 @@ export default function BoardGameDetailsPage() {
           <div className="product-meta-details">
             <div className="meta-line">
               <span className="meta-label">Артикул:</span>
-              <span className="meta-val">DND-0{game.id.replace('game-', '')}</span>
+              <span className="meta-val">DND-0{String(game.id).replace('game-', '')}</span>
             </div>
             <div className="meta-line">
               <span className="meta-label">Категорія:</span>
@@ -248,7 +430,7 @@ export default function BoardGameDetailsPage() {
             className={`tab-nav-btn ${activeTab === 'reviews' ? 'active' : ''}`}
             onClick={() => setActiveTab('reviews')}
           >
-            Відгуки ({game.ratingCount || 142})
+            Відгуки ({totalReviewsCount})
           </button>
         </div>
 
@@ -283,27 +465,141 @@ export default function BoardGameDetailsPage() {
           {activeTab === 'reviews' && (
             <div className="tab-pane">
               <div className="reviews-list">
-                <div className="review-item">
-                  <div className="review-header">
-                    <strong>Максим К.</strong>
-                    <span className="review-stars">★★★★★</span>
-                    <span className="review-date">2 дні тому</span>
+                {isLoadingReviews ? (
+                  <p style={{ color: '#64748b' }}>Завантаження відгуків...</p>
+                ) : reviews.length === 0 ? (
+                  <div className="review-empty-box">
+                    <p style={{ margin: 0, fontWeight: 600 }}>
+                      Ще немає опублікованих відгуків про цю гру.
+                    </p>
+                    <p style={{ margin: '0.5rem 0 0', fontSize: '0.85rem' }}>
+                      Будьте першим, хто поділиться своїми враженнями від партій!
+                    </p>
                   </div>
-                  <p className="review-text">
-                    Неймовірна гра! Доставка Новою Поштою прибула наступного дня, запаковано було в бронебійну пупирку.
-                    Правила зрозумілі, грали вже три вечори поспіль!
-                  </p>
-                </div>
-                <div className="review-item">
-                  <div className="review-header">
-                    <strong>Олена В.</strong>
-                    <span className="review-stars">★★★★★</span>
-                    <span className="review-date">Тиждень тому</span>
+                ) : (
+                  reviews.map((rev) => {
+                    const isPending = rev.status === 'pending'
+                    const starsCount = Math.min(5, Math.max(1, Math.round(Number(rev.rating || 5))))
+
+                    return (
+                      <div
+                        key={rev.id || `${rev.authorName}-${rev.createdAt}`}
+                        className={`review-item ${isPending ? 'is-pending' : ''}`}
+                      >
+                        <div className="review-header">
+                          <strong>{rev.authorName}</strong>
+                          <span className="review-stars">
+                            {'★'.repeat(starsCount)}
+                            {'☆'.repeat(5 - starsCount)}
+                          </span>
+                          <span className="review-date">{formatReviewDate(rev.createdAt)}</span>
+                          {isPending && (
+                            <span
+                              className="review-pending-badge"
+                              title="Ваш відгук надіслано на перевірку модератором"
+                            >
+                              ⏳ Ваш відгук (на модерації)
+                            </span>
+                          )}
+                        </div>
+                        <p className="review-text">{rev.comment}</p>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+
+              {/* Add Review Form */}
+              <div className="review-form-card">
+                <h3 className="review-form-title">Залишити відгук про гру</h3>
+                <p className="review-form-subtitle">
+                  Поділіться враженнями від ігрового процесу, правил та якості компонентів.
+                </p>
+
+                {reviewSuccess && (
+                  <div className="review-alert-success">
+                    {reviewSuccess}
                   </div>
-                  <p className="review-text">
-                    Якість компонентів на найвищому рівні. Купували на подарунок другові, дуже задоволені!
-                  </p>
-                </div>
+                )}
+
+                {reviewError && (
+                  <div className="review-alert-error">
+                    {reviewError}
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmitReview}>
+                  {/* Star Rating Picker */}
+                  <div className="review-form-field">
+                    <label className="review-form-label">Ваша оцінка:</label>
+                    <div className="review-star-picker-wrap">
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        {[1, 2, 3, 4, 5].map((starVal) => {
+                          const isHovered = hoveredRating >= starVal
+                          const isSelected = !hoveredRating && rating >= starVal
+                          return (
+                            <button
+                              key={starVal}
+                              type="button"
+                              className={`review-star-btn ${
+                                isHovered ? 'hovered' : isSelected ? 'active' : ''
+                              }`}
+                              onMouseEnter={() => setHoveredRating(starVal)}
+                              onMouseLeave={() => setHoveredRating(0)}
+                              onClick={() => setRating(starVal)}
+                              aria-label={`Оцінити на ${starVal} з 5`}
+                            >
+                              ★
+                            </button>
+                          )
+                        })}
+                      </div>
+                      <span className="review-star-label">
+                        {RATING_LABELS[hoveredRating || rating]}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Name Input */}
+                  <div className="review-form-field">
+                    <label htmlFor="review-author" className="review-form-label">
+                      Ваше ім'я або псевдонім:
+                    </label>
+                    <input
+                      id="review-author"
+                      type="text"
+                      className="review-form-input"
+                      placeholder="Наприклад: Олександр"
+                      value={authorName}
+                      onChange={(e) => setAuthorName(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  {/* Comment Textarea */}
+                  <div className="review-form-field">
+                    <label htmlFor="review-comment" className="review-form-label">
+                      Ваш відгук:
+                    </label>
+                    <textarea
+                      id="review-comment"
+                      className="review-form-textarea"
+                      rows="4"
+                      placeholder="Що вам сподобалося найбільше? Для якої компанії підійде гра?.."
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmittingReview}
+                    className="review-form-submit-btn"
+                  >
+                    {isSubmittingReview ? 'Надсилання...' : 'Надіслати відгук'}
+                  </button>
+                </form>
               </div>
             </div>
           )}

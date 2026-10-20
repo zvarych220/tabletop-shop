@@ -3,7 +3,7 @@ import PageHeading from '../components/ui/PageHeading.jsx'
 import BoardGameList from '../components/games/BoardGameList.jsx'
 import useBoardGameFilters from '../hooks/useBoardGameFilters.js'
 
-export default function BoardGameListPage({ items }) {
+export default function BoardGameListPage({ selectedId, onSelect }) {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
 
   const {
@@ -21,9 +21,17 @@ export default function BoardGameListPage({ items }) {
     setAvailableOnly,
     sortBy,
     setSortBy,
+    page,
+    setPage,
     visibleItems,
+    pagination,
+    isLoading,
+    categories,
     resetFilters,
-  } = useBoardGameFilters(items)
+  } = useBoardGameFilters()
+
+  const startItem = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.limit + 1
+  const endItem = Math.min(pagination.page * pagination.limit, pagination.total)
 
   return (
     <div className="lab-catalog-page">
@@ -69,12 +77,22 @@ export default function BoardGameListPage({ items }) {
 
         <div className="toolbar-meta-row">
           <span className="lab-toolbar-results-count">
-            Показано <strong>{visibleItems.length}</strong> з {items.length} товарів
+            {pagination.total === 0 ? (
+              'Товарів не знайдено'
+            ) : pagination.total <= pagination.limit ? (
+              <>
+                Показано <strong>{pagination.total}</strong> з {pagination.total} товарів
+              </>
+            ) : (
+              <>
+                Показано <strong>{startItem}–{endItem}</strong> з {pagination.total} товарів
+              </>
+            )}
           </span>
         </div>
       </div>
 
-      {/* Slide-over Filter Drawer (Screenshot 2) */}
+      {/* Slide-over Filter Drawer */}
       {isFilterDrawerOpen && (
         <div
           className="filter-drawer-overlay"
@@ -124,9 +142,9 @@ export default function BoardGameListPage({ items }) {
                       <input
                         type="number"
                         min={0}
-                        max={maxPrice}
-                        value={minPrice}
-                        onChange={(e) => setMinPrice(Number(e.target.value))}
+                        placeholder="0"
+                        value={minPrice || ''}
+                        onChange={(e) => setMinPrice(e.target.value ? Number(e.target.value) : 0)}
                         className="price-num-input"
                       />
                     </div>
@@ -135,10 +153,10 @@ export default function BoardGameListPage({ items }) {
                       <span className="price-curr">₴</span>
                       <input
                         type="number"
-                        min={minPrice}
-                        max={5000}
-                        value={maxPrice}
-                        onChange={(e) => setMaxPrice(Number(e.target.value))}
+                        min={minPrice || 0}
+                        placeholder="До 10000"
+                        value={maxPrice || ''}
+                        onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : '')}
                         className="price-num-input"
                       />
                     </div>
@@ -146,16 +164,16 @@ export default function BoardGameListPage({ items }) {
                   <input
                     type="range"
                     min={0}
-                    max={3500}
-                    step={50}
-                    value={maxPrice}
+                    max={10000}
+                    step={100}
+                    value={maxPrice || 10000}
                     onChange={(e) => setMaxPrice(Number(e.target.value))}
                     className="filter-range-slider"
                   />
                 </div>
               </div>
 
-              {/* Рейтинг (Screenshot 2) */}
+              {/* Рейтинг */}
               <div className="filter-group">
                 <span className="filter-group-title">РЕЙТИНГ</span>
                 <div className="filter-rating-options">
@@ -181,7 +199,7 @@ export default function BoardGameListPage({ items }) {
               <div className="filter-group">
                 <span className="filter-group-title">КАТЕГОРІЯ</span>
                 <div className="filter-category-options">
-                  {['all', 'Стратегія', 'Паті-гра', 'Кооперативна', 'Сімейна'].map((cat) => (
+                  {categories.map((cat) => (
                     <label key={cat} className="filter-radio-label">
                       <input
                         type="radio"
@@ -221,7 +239,7 @@ export default function BoardGameListPage({ items }) {
                 className="filter-apply-btn"
                 onClick={() => setIsFilterDrawerOpen(false)}
               >
-                Застосувати ({visibleItems.length})
+                Застосувати ({pagination.total})
               </button>
             </div>
           </aside>
@@ -229,10 +247,53 @@ export default function BoardGameListPage({ items }) {
       )}
 
       {/* Products Grid */}
-      <BoardGameList
-        items={visibleItems}
-        emptyTitle={items.length === 0 ? 'Каталог порожній' : 'За цими умовами нічого не знайдено'}
-      />
+      <div className={isLoading ? 'catalog-loading-fade' : ''}>
+        <BoardGameList
+          items={visibleItems}
+          selectedId={selectedId}
+          onSelect={onSelect}
+          emptyTitle="За цими умовами нічого не знайдено"
+        />
+      </div>
+
+      {/* Pagination Controls */}
+      {pagination.totalPages > 1 && (
+        <nav className="catalog-pagination" aria-label="Навігація по каталогу">
+          <button
+            type="button"
+            className="pagination-nav-btn"
+            onClick={() => setPage(pagination.page - 1)}
+            disabled={!pagination.hasPrevPage || isLoading}
+            aria-label="Попередня сторінка"
+          >
+            ← Назад
+          </button>
+
+          <div className="pagination-pages-list">
+            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((pageNum) => (
+              <button
+                key={pageNum}
+                type="button"
+                className={`pagination-page-btn ${pageNum === pagination.page ? 'active' : ''}`}
+                onClick={() => setPage(pageNum)}
+                disabled={isLoading}
+              >
+                {pageNum}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="pagination-nav-btn"
+            onClick={() => setPage(pagination.page + 1)}
+            disabled={!pagination.hasNextPage || isLoading}
+            aria-label="Наступна сторінка"
+          >
+            Вперед →
+          </button>
+        </nav>
+      )}
     </div>
   )
 }
