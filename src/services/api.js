@@ -3,7 +3,7 @@
  * Dice & Deck Tabletop Shop
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/tabletop-shop/backend/public/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://dicedecktest.zzz.com.ua/backend/public/api';
 const DATA_SOURCE = import.meta.env.VITE_DATA_SOURCE || 'mock';
 
 /**

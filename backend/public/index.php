@@ -45,13 +45,15 @@ $requestUri = $_SERVER['REQUEST_URI'];
 
 // Parse URI
 $uri = parse_url($requestUri, PHP_URL_PATH);
-$uri = str_replace('/tabletop-shop/backend/public', '', $uri);
-$uri = rtrim($uri, '/');
 
-// Remove /api prefix if present
-if (strpos($uri, '/api') === 0) {
-    $uri = substr($uri, 4);
+// Find /api prefix and extract routing path after it
+$apiPos = strpos($uri, '/api');
+if ($apiPos !== false) {
+    $uri = substr($uri, $apiPos + 4);
+} else {
+    $uri = str_replace(['/tabletop-shop/backend/public', '/backend/public'], '', $uri);
 }
+$uri = rtrim($uri, '/');
 
 // Split URI into segments
 $uriSegments = array_values(array_filter(explode('/', $uri)));

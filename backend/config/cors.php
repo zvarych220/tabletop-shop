@@ -9,7 +9,9 @@ $allowedOrigins = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     'http://localhost:3000',
-    'http://127.0.0.1:3000'
+    'http://127.0.0.1:3000',
+    'http://dicedecktest.zzz.com.ua',
+    'https://dicedecktest.zzz.com.ua'
 ];
 
 // Get the request origin
@@ -17,6 +19,8 @@ $requestOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
 // Check if origin is allowed
 if (in_array($requestOrigin, $allowedOrigins)) {
+    header('Access-Control-Allow-Origin: ' . $requestOrigin);
+} elseif (!empty($requestOrigin) && (strpos($requestOrigin, 'zzz.com.ua') !== false || strpos($requestOrigin, 'localhost') !== false)) {
     header('Access-Control-Allow-Origin: ' . $requestOrigin);
 } else {
     // Default fallback for development

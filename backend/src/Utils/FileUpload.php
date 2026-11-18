@@ -66,7 +66,10 @@ class FileUpload
         }
 
         // Return relative URL path
-        return '/tabletop-shop/backend/public/uploads/' . $category . '/' . $filename;
+        $baseUploadUrl = (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/tabletop-shop') !== false)
+            ? '/tabletop-shop/backend/public/uploads/'
+            : '/backend/public/uploads/';
+        return $baseUploadUrl . $category . '/' . $filename;
     }
 
     /**
@@ -102,7 +105,7 @@ class FileUpload
     public static function deleteImage(string $filePath): bool
     {
         // Convert URL path to file system path
-        $filePath = str_replace('/tabletop-shop/backend/public', self::UPLOAD_DIR . '../', $filePath);
+        $filePath = str_replace(['/tabletop-shop/backend/public', '/backend/public'], self::UPLOAD_DIR . '../', $filePath);
         $filePath = realpath($filePath);
 
         if ($filePath && file_exists($filePath) && is_file($filePath)) {
